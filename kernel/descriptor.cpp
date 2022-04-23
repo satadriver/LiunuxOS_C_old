@@ -57,7 +57,7 @@ void initLdt(LPSEGDESCRIPTOR lpldt) {
 	selectors[4].gd0a_lh = 0xcf;
 	selectors[4].limitLow = 0xffff;
 
-	short ldtno = ((DWORD)lpldt - (DWORD)glpGdt);
+	unsigned short ldtno = (unsigned short)((DWORD)lpldt - (DWORD)glpGdt);
 	__asm {
 		movzx eax, ldtno
 		lldt ax

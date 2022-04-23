@@ -26,9 +26,16 @@
 #define SHT_INITARRAY	14	//init array
 #define SHT_FINALARRAY	15	//final array
 
+#define SHF_WRITE		0x1			//进程执行的时候，section内的数据可写。
+#define SHF_ALLOC		0x2			//进程执行的时候，section需要占据内存。
+#define SHF_EXECINSTR	0x4			//节内包含可以执行的机器指令。
+#define SHF_STRINGS		0x20		//包含0结尾的字符串。
+#define SHF_MASKOS		0x0ff00000	//这个mask为OS特定的语义保留8位。
+#define SHF_MASKPROC	0xf0000000	//这个mask包含的所有位保留（也就是最高字节的高4位），为处理器相关的语义使用。
+
 #define PT_NULL			0
 #define PT_LOAD			1
-#define PT_DYNAMIC		2		//same to SHT_DYNAMIC
+#define PT_DYNAMIC		2		
 #define PT_INTERP		3
 #define PT_NOTE			4
 #define PT_SHLIB		5
@@ -40,6 +47,38 @@
 #define PT_HIPROC		0X7FFFFFFF
 #define PT_GNU_STACK	0X6474E551
 #define PT_GNU_RELRO	0X6474E552
+
+/*d_tag 的取值*/
+/* Dynamic Array Tags - d_tag */
+#define DT_NULL		0		/* marks end of _DYNAMIC array */
+#define DT_NEEDED	1		/* string table offset of needed lib */
+#define DT_PLTRELSZ	2		/* size of relocation entries in PLT */
+#define DT_PLTGOT	3		/* address PLT/GOT */
+#define DT_HASH		4		/* address of symbol hash table */
+#define DT_STRTAB	5		/* address of string table */
+#define DT_SYMTAB	6		/* address of symbol table */
+#define DT_RELA		7		/* address of relocation table */
+#define DT_RELASZ	8		/* size of relocation table */
+#define DT_RELAENT	9		/* size of relocation entry */
+#define DT_STRSZ	10		/* size of string table */
+#define DT_SYMENT	11		/* size of symbol table entry */
+#define DT_INIT		12		/* address of initialization func. */
+#define DT_FINI		13		/* address of termination function */
+#define DT_SONAME	14		/* string table offset of shared obj */
+#define DT_RPATH	15		/* string table offset of library
+search path */
+#define DT_SYMBOLIC	16		/* start sym search in shared obj. */
+#define DT_REL		17		/* address of rel. tbl. w addends */
+#define DT_RELSZ	18		/* size of DT_REL relocation table */
+#define DT_RELENT	19		/* size of DT_REL relocation entry */
+#define DT_PLTREL	20		/* PLT referenced relocation entry */
+#define DT_DEBUG	21		/* bugger */
+#define DT_TEXTREL	22		/* Allow rel. mod. to unwritable seg */
+#define DT_JMPREL	23		/* add. of PLT's relocation entries */
+#define DT_BIND_NOW	24		/* Bind now regardless of env setting */
+#define DT_NUM		25		/* Number used. */
+#define DT_LOPROC	0x70000000	/* reserved range for processor */
+#define DT_HIPROC	0x7fffffff	/*  specific dynamic array tags */
 
 #define EI_NIDENT		16
 
@@ -117,6 +156,7 @@ typedef struct {
 } Elf32_Rela;
 
 
+
 typedef struct {
 	Elf32_Word st_name;			//符号表项名称。如果该值非0，则表示符号名的字符串表索引(offset)，否则符号表项没有名称。
 	Elf32_Addr st_value;		//对于可执行和so文件st_value是一个虚拟地址。android linker 通过将 st_value 与该文件加载到内存的基址相加，从而得到该符号的定义地址。
@@ -127,19 +167,12 @@ typedef struct {
 } Elf32_sym;
 
 
-//__do_global_dtors_aux
-//deregister_tm_clones
-//frame_dummy
-//register_tm_clones
+//.got，类型SHT_PROGBITS
+//.plt 过程链接表（Procedure Linkage Table），类型SHT_PROGBITS
+//.dynamic 指向Elf32_Dyn
+//.dynsym指向Elf32_sym
 
-//sh_link
-//sh_entsize
-//sh_name值实际上是.shstrtab中的索引，该string table中存储着所有section的名字。
-
-//.rel.dyn和.rel.plt是动态定位辅助段。由连接器产生，存在于可执行文件或者动态库文件内。
-//借助这两个辅助段可以动态修改对应.got和.got.plt段，从而实现运行时重定位。
-
-//.symtab确定符号的名称与其值之间的关联，其中名称不是直接以字符串形式出现的，而是表示为某一字符串数组（.strtab）的索引。
+//http://www.360doc.com/content/15/1126/20/7377734_516130511.shtml
 
 typedef struct {
 	Elf32_SWord d_tag;
@@ -149,13 +182,15 @@ typedef struct {
 	} d_un;
 } Elf32_Dyn;
 
+
+
 #pragma pack()
 
+int initElf(DWORD file, int filesize, DWORD base);
 
+int mapFile(DWORD file, int filesize,DWORD dst);
 
-int mapFile(DWORD file, DWORD dst);
-
-int realoc(DWORD elf);
+int realoc(DWORD elf,DWORD base);
 
 Elf32_Shdr * getShstrtabSection(DWORD file);
 
@@ -169,7 +204,7 @@ Elf32_Shdr * getDynsymSection();
 
 
 #ifdef DLL_EXPORT
-extern "C"  __declspec(dllexport) int runElfFunction(char * filename, char * funcname);
+extern "C"  __declspec(dllexport) int runElfFunction(char * filename,char * funcname);
 #else
 extern "C"  __declspec(dllimport) int runElfFunction(char * filename, char * funcname);
 #endif
@@ -180,24 +215,15 @@ Elf32_Shdr * getSectionByName(DWORD file, char * sectionname);
 
 char * checkStrExist(DWORD file, char * sectionname);
 
-DWORD getSymAddrByName(DWORD file, char * symname);
-DWORD getSymAddrByIdx(DWORD file,int idx);
+DWORD getSymAddrByName(DWORD file, char * symname,DWORD base);
+DWORD getSymAddrByIdx(DWORD file,int idx, DWORD base);
 
+DWORD getFiniSection(DWORD file, DWORD base);
+DWORD getInitSection(DWORD file, DWORD base);
+DWORD getFiniArraySection(DWORD file, DWORD base);
+DWORD getInitArraySection(DWORD file, DWORD base);
 
-
-DWORD getFiniSection(DWORD file);
-DWORD getInitSection(DWORD file);
-DWORD getFiniArraySection(DWORD file);
-DWORD getInitArraySection(DWORD file);
-
-DWORD getInit(DWORD file);
-DWORD getFini(DWORD file);
+DWORD getInit(DWORD file, DWORD base);
+DWORD getFini(DWORD file, DWORD base);
 
 void showAllSegs(DWORD file);
-
-
-//GOT HOOK 
-//1 GET SECTION WHICH TYPE ==SHT_DYNAMIC (SHT_DYNAMIC IS 6)
-//2 GET (sh_offset + BASE) AND sh_link,THE ADDRESS IS (*Elf32_Dyn)
-//3 GET d_tag == 6,then (BASE + d_un.d_ptr) IS (*Elf32_sym)
-//4 GET FUNCTION ADDRESS

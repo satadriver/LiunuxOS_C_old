@@ -156,6 +156,8 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->counter = 0;
 
+	tss->ppid = tss->ppid;
+
 	__strcpy(tss->filename, process->filename);
 	__strcpy(tss->funcname, funcname);
 

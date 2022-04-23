@@ -55,7 +55,8 @@ typedef struct __TSS{
 	unsigned char	iomapEnd;			//104 + 32 + 8192
 
 	unsigned char	fpu;
-	unsigned char	unused[2];
+	unsigned char	prior;
+	unsigned char	unused;
 } TSS,*LPTSS;
 
 #pragma pack(pop)
@@ -69,7 +70,11 @@ typedef struct
 
 	DWORD tid;
 
+	DWORD ppid;
+
 	DWORD level;
+
+	DWORD sleep;
 
 	//物理地址而不是线性地址
 	DWORD moduleaddr;

@@ -318,6 +318,55 @@ int __terminateTid(int tid) {
 
 
 
+int __pauseTid(int tid) {
+
+	TASK_LIST_ENTRY* list = __findProcessByTid(tid);
+	if (list)
+	{
+		list->process->status = TASK_SUSPEND;
+	}
+
+	return 0;
+}
+
+
+int __resumeTid(int tid) {
+
+	TASK_LIST_ENTRY* list = __findProcessByTid(tid);
+	if (list)
+	{
+		list->process->status = TASK_RUN;
+	}
+
+	return 0;
+}
+
+
+int __pausePid(int pid) {
+
+	TASK_LIST_ENTRY* list = __findProcessByPid(pid);
+	if (list)
+	{
+		list->process->status = TASK_SUSPEND;
+	}
+
+	return 0;
+}
+
+
+int __resumePid(int pid) {
+
+	TASK_LIST_ENTRY* list = __findProcessByPid(pid);
+	if (list)
+	{
+		list->process->status = TASK_RUN;
+	}
+
+	return 0;
+}
+
+
+
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
 
 	systimerProc();
@@ -339,7 +388,35 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
 
 
 	TASK_LIST_ENTRY * prev = gTasksListPtr;
-	gTasksListPtr = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+
+	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+	do
+	{
+		if (next == prev)
+		{
+			return FALSE;
+		}
+		if (next->process->status != TASK_RUN)
+		{
+			next = (TASK_LIST_ENTRY*)next->list.next;
+		}
+		else {
+			if (next->process->sleep )
+			{
+				next->process->sleep--;
+			}
+			if (next->process->sleep)
+			{
+				next = (TASK_LIST_ENTRY*)next->list.next;
+			}
+			else {
+				break;
+			}
+		}
+	} while (1);
+	
+	gTasksListPtr = (TASK_LIST_ENTRY*)next;
+
 	if (prev->process->tid == gTasksListPtr->process->tid)
 	{
 		return 0;
@@ -366,13 +443,13 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
 // 		lldt ax
 // 	}
 
-	if (prev->process->status == TASK_RUN && process->status == TASK_RUN)
+	//if (prev->process->status == TASK_RUN && process->status == TASK_RUN)
 	{
 		process->counter++;
 		__memcpy((char*)(tss + prev->process->tid), (char*)process, sizeof(PROCESS_INFO));
 	}
 	
-	if (gTasksListPtr->process->status == TASK_RUN)
+	//if (gTasksListPtr->process->status == TASK_RUN)
 	{
 		__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
 	}

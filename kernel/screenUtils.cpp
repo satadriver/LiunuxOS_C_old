@@ -34,7 +34,15 @@ int gCursorColor = 0;
 
 unsigned char gCursorBackup[1024];
 
-#define CURSOR_HEARTBEAR_INTERVAL 300
+#define CURSOR_REFRESH_MILLISECONDS		200
+
+#define TIMESLIP_MAXIMUM_MILLISECONDS	100
+#define TIMESLIP_MINIMUM_MILLISECONDS	1
+#define TIMESLIP_DEFAULT_MILLISECONDS	10
+
+int g_timeslip = 0;
+
+int SYSTEM_TIMER0_FACTOR = 0;
 
 #define SREENPROTECT_COLOR 0
 //0XBBFFFF 0X87CEEB
@@ -160,8 +168,8 @@ extern "C" __declspec(dllexport) void __kScreenProtect() {
 
 	if (gCursorEnable)
 	{
-		gCursorDelay++;
-		if (gCursorDelay >= CURSOR_HEARTBEAR_INTERVAL)
+		gCursorDelay += g_timeslip;
+		if (gCursorDelay >= CURSOR_REFRESH_MILLISECONDS)
 		{
 			gCursorDelay = 0;
 			drawCursor();
@@ -236,12 +244,34 @@ extern "C" __declspec(dllexport) void __kScreenProtect() {
 	return ;
 }
 
+#include "systemTimer.h"
 
 void setCursor(int enable,DWORD *x, DWORD *y,unsigned int color) {
 	gCursorEnable = enable;
 	gCursorX = x;
 	gCursorY = y;
 	gCursorColor = color;
+
+	if (g_timeslip == 0 || SYSTEM_TIMER0_FACTOR == 0)
+	{
+		SYSTEM_TIMER0_FACTOR = *(DWORD*)TIMER0_FREQUENCY_ADDR;	//11931 23864 = 50hz,time slip is 1000/50 = 20ms
+		if (SYSTEM_TIMER0_FACTOR <= 0 || SYSTEM_TIMER0_FACTOR >= 0x10000)
+		{
+			SYSTEM_TIMER0_FACTOR = TIMER0_FREQUENCY/100;
+		}
+
+		int hz = (TIMER0_FREQUENCY / SYSTEM_TIMER0_FACTOR);
+		if (hz <= 0 || hz>= 1000)
+		{
+			hz = 100;
+		}
+		
+		g_timeslip = 1000 / hz;
+		if (g_timeslip <= TIMESLIP_MINIMUM_MILLISECONDS || g_timeslip >= TIMESLIP_MAXIMUM_MILLISECONDS)
+		{
+			g_timeslip = TIMESLIP_DEFAULT_MILLISECONDS;
+		}
+	}
 }
 
 

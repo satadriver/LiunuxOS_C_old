@@ -120,7 +120,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	DWORD eflags = 0x23210;
 	//eflags |= 0x4000;		//nt == 1
 
-	WORD seg = (addr >> 4);
+	WORD seg = (unsigned short)(addr >> 4);
 
 	WORD offset = (addr & 0x0f);
 

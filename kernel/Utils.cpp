@@ -1099,11 +1099,11 @@ void __initSpinLock(DWORD * v) {
 
 WORD __enterSpinLock(DWORD * v) {
 	__asm {
-__getlock:
+	__enterSpinLockLoop:
 			lock bts[v], 0
 			jnc __enterSpinLockEnd
 			pause
-			jmp __getlock
+			jmp __enterSpinLockLoop
 			__enterSpinLockEnd :
 	}
 }
@@ -1117,46 +1117,48 @@ WORD __leaveSpinLock(DWORD * v) {
 	}
 }
 
-//cmpxchg oprd1,oprd2,oprd1:mem or reg,oprd2:reg
+//cmpxchg oprd1,oprd2.	oprd1:mem or reg,oprd2:reg
 //CMPXCHG r/m,r
-//CMPXCHG r / m, r 将累加器AL / AX / EAX / RAX中的值与首操作数（目的操作数）比较，如果相等，第2操作数（源操作数）的值装载到首操作数，zf置1。
-//如果不等， 首操作数的值装载到AL / AX / EAX / RAX并将zf清0
+//CMPXCHG r/m, r 将累加器AL/AX/EAX/RAX中的值与首操作数（目的操作数）比较
+// 如果相等，第2操作数（源操作数）的值装载到首操作数，zf置1。
+// 如果不等， 首操作数的值装载到AL/AX/EAX/RAX并将zf清0
 DWORD __enterlock(DWORD * lockvalue) {
 	DWORD result = 0;
-	while (result == 0)
-	{
-		__asm {
-			mov eax, 1
-			lock cmpxchg[lockvalue], eax
-			jz _Busy
-			mov result, 1
-			jmp _over
-			_Busy :
-			mov result, 0
-			_over :
-		}
-	}
 
+	__asm {
+		__enterlockLoop:
+		mov eax, 0
+		mov edx, 1
+		lock cmpxchg[lockvalue], edx
+		jz _over
+		//here the eax is the current value of the lock
+		inc dword ptr [result]
+		pause
+		jmp __enterlockLoop
+
+		_over :
+	}
+	
 	return result;
 }
 
 
 DWORD __leavelock(DWORD * lockvalue) {
 	DWORD result = 0;
-	while (result == 0)
-	{
-		__asm {
-			mov eax, 1
-			lock cmpxchg[lockvalue], eax
-			jz _Busy
-			mov result, 1
-			jmp _over
-			_Busy :
-			mov result, 0
-				_over :
-		}
-	}
 
+	__asm {
+	__leavelockLoop:
+		mov eax, 1
+		mov edx, 0
+		lock cmpxchg[lockvalue], edx
+		jz _over
+		//here the eax is the current value of the lock
+		pause
+		inc dword ptr[result]
+		jmp __leavelockLoop
+		_over :
+	}
+	
 	return result;
 }
 
@@ -1183,3 +1185,29 @@ extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime)
 extern "C"  __declspec(dllexport) int __getDateTimeStr(void * str) {
 	return __strcpy((char*)str,(char*) CMOS_DATETIME_STRING);
 }
+
+
+
+
+extern "C"  __declspec(dllexport) int __spinlock_xchg_entry(void* lockv) {
+	__asm {
+		__spinlock_xchg:
+		mov eax,1
+		lock xchg [lockv],eax
+		cmp eax,0
+		jnz __spinlock_xchg
+	}
+	return TRUE;
+}
+
+
+extern "C"  __declspec(dllexport) int __spinlock_xchg_leave(void* lockv) {
+	DWORD result = 0;
+	__asm {
+		mov eax, 0
+		lock xchg[lockv], eax
+		mov [result],eax
+	}
+	return result;
+}
+

@@ -78,7 +78,20 @@ void removelist(LPLIST_ENTRY list) {
 		list->next->prev = 0;
 	}
 	else {
-		list->prev->next = list->next;
-		list->next->prev = list->prev;
+		LPLIST_ENTRY next = list->next;
+		LPLIST_ENTRY prev = list->prev;
+		list->prev->next = next;
+		list->next->prev = prev;
+	}
+}
+
+
+
+void clearlist(LPLIST_ENTRY list) {
+
+	LPLIST_ENTRY ptr = list;
+	while (ptr)
+	{
+
 	}
 }

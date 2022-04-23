@@ -276,6 +276,10 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 	tss->window = 0;
 
+	LPPROCESS_INFO thistss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	tss->ppid = thistss->pid;
+	tss->sleep = 0;
+
 // 	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",
 // 		getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
 // 	__drawGraphChars((unsigned char*)szout, 0);

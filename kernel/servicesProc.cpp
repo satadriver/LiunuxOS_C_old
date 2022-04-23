@@ -1,4 +1,5 @@
 #include "servicesProc.h"
+#include "task.h"
 
 DWORD __kServicesProc(DWORD no, DWORD * params) {
 	switch (no)
@@ -45,12 +46,22 @@ DWORD __kServicesProc(DWORD no, DWORD * params) {
 			times++;
 		}
 
-		for (int i = 0; i < times; i++)
+		if (times > 0)
 		{
-			__asm {
-				hlt
-			}
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			tss->sleep = times - 1;
 		}
+		__asm {
+			hlt;
+		}
+
+// 		for (int i = 0; i < times; i++)
+// 		{
+// 			__asm {
+// 				hlt
+// 			}
+// 		}
+
 		break;
 	}
 	case TURNON_SCREEN:
