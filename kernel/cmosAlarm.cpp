@@ -110,6 +110,11 @@ CMOSALARM_PROCESS_LIST gCmosAlarmProc;
 
 
 void __kCmosAlarmProc() {
+
+	char szout[1024];
+	__printf(szout, "__kCmosAlarmProc\n");
+	__drawGraphChars((unsigned char*)szout, 0);
+
 	DWORD addr = gCmosAlarmProc.addr;
 	DWORD interval = gCmosAlarmProc.interval;
 	DWORD param = gCmosAlarmProc.param;
@@ -259,7 +264,7 @@ void __doAlarmTask(DWORD  param) {
 	char szout[1024];
 	__printf(szout, "set cmos alarm complete\n");
 	__drawGraphChars((unsigned char*)szout, 0);
-	return;
+	//return;
 
 	DWORD backsize = gBytesPerPixel*(gVideoWidth)*(gVideoHeight);
 

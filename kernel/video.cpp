@@ -34,13 +34,25 @@ int gShowX = 0;
 int gShowY = 0;
 
 
-
+#include "pci.h"
 
 
 int __getVideoParams(LPVESAINFORMATION vesaInfo,DWORD fontbase){
-	
+	int result = 0;
+
 	//__memset((char*)&gVesaInfo, 0, sizeof(VESAINFORMATION));
 	__memcpy((char*)&gVesaInfo, (char*)vesaInfo, sizeof(VESAINFORMATION));
+
+	DWORD svgaregs[16];
+	DWORD svgadev = 0;
+	DWORD svgairq = 0;
+	result = getBasePort(svgaregs, 0x0300, &svgadev, &svgairq);
+	if ( (svgaregs) && (svgaregs[0] & 1) == 0 )		//memory address
+	{
+		gVesaInfo.PhyBasePtr = (svgaregs[0] & 0xfffffff0);
+	}
+	
+
 
 	gFontBase = fontbase;
 	gBytesPerPixel = vesaInfo->BitsPerPixel >> 3;

@@ -124,7 +124,7 @@ int showPciDevs() {
 	int ret = 0;
 	char szout[1024];
 
-	DWORD svgaregs[32];
+	DWORD svgaregs[16];
 	DWORD svgadev = 0;
 	DWORD svgairq = 0;
 	ret = getSvga(svgaregs, &svgadev, &svgairq);
