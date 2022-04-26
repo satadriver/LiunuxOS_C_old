@@ -61,6 +61,20 @@ typedef struct {
 	char reserve_2[194]; //保留
 }VESAINFORMATION, *LPVESAINFORMATION;
 
+typedef struct {
+	unsigned long signature;			//VESA
+	unsigned short version;				//2
+	unsigned short oem_dos_offset;
+	unsigned short oem_dos_seg;
+	unsigned char capacities[4];		//1
+	unsigned short mode_dos_offset;
+	unsigned short mode_dos_seg;
+	unsigned short blockTotal;			//乘以0x10000就是显存大小
+	unsigned char reserved[236];
+
+}VESAINFOBLOCK;
+
+
 #pragma pack()
 
 

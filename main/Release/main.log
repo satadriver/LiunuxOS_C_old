@@ -1,3 +1,38 @@
-﻿    正在创建库 E:\vm\share\project\test\LiunuxOS_C\Release\main.lib 和对象 E:\vm\share\project\test\LiunuxOS_C\Release\main.exp
+﻿cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
+  Explorer.cpp
+E:\vm\share\project\test\LiunuxOS_C\main\hept.h(29,5): warning C4200: 使用了非标准扩展: 结构/联合中的零大小数组
+E:\vm\share\project\test\LiunuxOS_C\main\hept.h(29,5): message : 默认构造函数或 copy/move 赋值运算符将忽略此成员
+E:\vm\share\project\test\LiunuxOS_C\main\Explorer.cpp(146,52): warning C4018: “<”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Explorer.cpp(148,50): warning C4018: “<”: 有符号/无符号不匹配
+  FileManager.cpp
+E:\vm\share\project\test\LiunuxOS_C\main\FileManager.cpp(439,107): warning C4018: “<”: 有符号/无符号不匹配
+  FileManagerWindow.cpp
+  Menu.cpp
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(24,20): warning C4018: “<=”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(26,21): warning C4018: “<=”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(56,49): warning C4018: “>=”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(61,50): warning C4018: “>=”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(77,20): warning C4018: “<=”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(79,21): warning C4018: “<=”: 有符号/无符号不匹配
+E:\vm\share\project\test\LiunuxOS_C\main\Menu.cpp(106,20): warning C4018: “<”: 有符号/无符号不匹配
+  ntfsDirs.cpp
+E:\vm\share\project\test\LiunuxOS_C\main\NTFS\ntfsDirs.cpp(272,29): warning C4018: “>=”: 有符号/无符号不匹配
+  TaskBar.cpp
+  UserUtils.cpp
+  WindowClass.cpp
+  console.cpp
+  fat12.cpp
+E:\vm\share\project\test\LiunuxOS_C\main\fat12\fat12.cpp(159,3): warning C4244: “参数”: 从“unsigned long”转换到“short”，可能丢失数据
+  fat32dirs.cpp
+  jpeg.cpp
+  graph.cpp
+  ios9660.cpp
+E:\vm\share\project\test\LiunuxOS_C\main\ios9660\ios9660.cpp(126,24): warning C4018: “>=”: 有符号/无符号不匹配
+  machine.cpp
+  main.cpp
+  paint.cpp
+  sysregs.cpp
+  正在生成代码...
+    正在创建库 E:\vm\share\project\test\LiunuxOS_C\Release\main.lib 和对象 E:\vm\share\project\test\LiunuxOS_C\Release\main.exp
   LINK : 已指定 /LTCG，但不需要生成代码；从链接命令行中移除 /LTCG 以提高链接器性能
   main.vcxproj -> E:\vm\share\project\test\LiunuxOS_C\Release\main.dll

@@ -61,6 +61,37 @@ typedef struct {
 	char reserve_2[194]; //保留
 }VESAINFORMATION, *LPVESAINFORMATION;
 
+typedef struct {
+	unsigned long signature;			//VESA
+	unsigned short version;				//2
+	unsigned short oem_dos_offset;
+	unsigned short oem_dos_seg;
+	unsigned char capacities[4];		//1
+	unsigned short mode_dos_offset;
+	unsigned short mode_dos_seg;
+	unsigned short blockTotal;			//乘以0x10000就是显存大小
+	unsigned char reserved[236];
+
+}VESAINFOBLOCK;
+
+
+// vbe info：VGA图形系统相关参数
+typedef struct  {
+	char          VBESignature[4];            // 字符串"VESA"          
+	unsigned   short   VBEVersion;                 // VBE版本号，BCD码
+	char /*far*/* OEMStringPtr;              // 指向OEM厂商的标志串的指针        
+	long          Capabilities;               // 显示卡特性  
+	char /*far*/* VideoModePtr;              // 指向所支持显示模式列表的指针
+	unsigned    short  VRAMMemory;                 // 显示内存大小，单位为64KB      
+	// 以下为VESA VBE 2.0版本以上定义
+	unsigned  short    OemSoftwareRev;             // VBE软件的OEM修订版本号，BCD码
+	char /*far*/* OemVendorNamePtr;           // 指向显示卡制造厂商的字符串指针
+	char /*far*/* OemProductNamePtr;          // 指向显示卡制造商的字符串的指针
+	char /*far*/* OemProductRevPtr;           // 指向显示卡修订版本号或唱片等级的字符串的指针
+	char         reserved[222];               // 保留
+	char         OEMData[256];                // VESA2.0版以上定义
+} VBEINFO;
+
 #pragma pack()
 
 

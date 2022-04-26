@@ -12,7 +12,7 @@
 #include "file.h"
 
 
-VESAINFORMATION gVesaInfo;
+VESAINFORMATION *gVesaInfo;
 unsigned char* gCCFontBase = 0;
 DWORD gFontBase = 0;
 unsigned int gGraphBase = 0;
@@ -40,8 +40,11 @@ int gShowY = 0;
 int __getVideoParams(LPVESAINFORMATION vesaInfo,DWORD fontbase){
 	int result = 0;
 
-	//__memset((char*)&gVesaInfo, 0, sizeof(VESAINFORMATION));
-	__memcpy((char*)&gVesaInfo, (char*)vesaInfo, sizeof(VESAINFORMATION));
+	gVesaInfo = (VESAINFORMATION*)VESA_INFO_BASE;
+
+	__memcpy((char*)gVesaInfo, (char*)vesaInfo, sizeof(VESAINFORMATION));
+
+	__memcpy((char*)gVesaInfo + sizeof(VESAINFORMATION), (char*)vesaInfo + sizeof(VESAINFORMATION), sizeof(VESAINFOBLOCK));
 
 	DWORD svgaregs[16];
 	DWORD svgadev = 0;
@@ -49,7 +52,7 @@ int __getVideoParams(LPVESAINFORMATION vesaInfo,DWORD fontbase){
 	result = getBasePort(svgaregs, 0x0300, &svgadev, &svgairq);
 	if ( (svgaregs) && (svgaregs[0] & 1) == 0 )		//memory address
 	{
-		gVesaInfo.PhyBasePtr = (svgaregs[0] & 0xfffffff0);
+		//gVesaInfo.PhyBasePtr = (svgaregs[0] & 0xfffffff0);
 	}
 	
 
