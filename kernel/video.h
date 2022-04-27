@@ -44,7 +44,7 @@ typedef struct {
 // 以下为VBE2.0版本以上定义
 	int PhyBasePtr; //可使用的大的帧缓存时为指向其首址的32位物理地址
 	int OffScreenMemOffset; //帧缓存首址的32位偏移量
-	short OffScreenMemSize; //可用的, 连续的显示缓冲区, 以KB为单位
+	short OffScreenMemSize; //不可用的显示缓冲区, 以KB为单位
 // 50
 // 以下为VBE3.0版以上定义
 	short LinBytesPerScanLine; //线形缓冲区中每条扫描线的长度, 以字节为单位
