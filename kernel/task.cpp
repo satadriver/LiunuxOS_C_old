@@ -386,32 +386,34 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
 // 	}
 
 
-
 	TASK_LIST_ENTRY * prev = gTasksListPtr;
 
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
 	do
 	{
-		if (next == prev)
+		if (next == 0 || next == prev)
 		{
 			return FALSE;
 		}
+
 		if (next->process->status != TASK_RUN)
 		{
 			next = (TASK_LIST_ENTRY*)next->list.next;
+			continue;
+		}
+
+		if (next->process->sleep)
+		{
+			next->process->sleep--;
+		}
+
+		if (next->process->sleep)
+		{
+			next = (TASK_LIST_ENTRY*)next->list.next;
+			continue;
 		}
 		else {
-			if (next->process->sleep )
-			{
-				next->process->sleep--;
-			}
-			if (next->process->sleep)
-			{
-				next = (TASK_LIST_ENTRY*)next->list.next;
-			}
-			else {
-				break;
-			}
+			break;
 		}
 	} while (1);
 	
@@ -419,7 +421,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
 
 	if (prev->process->tid == gTasksListPtr->process->tid)
 	{
-		return 0;
+		//return 0;
 	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -496,7 +498,6 @@ void tasktest(TASK_LIST_ENTRY *gTasksListPtr, TASK_LIST_ENTRY*gPrevTasksPtr) {
 	{
 		char szout[1024];
 		//TSS* procinfo = (TSS*)gAsmTsses;
-
 		//__printf(szout, "clock tick tss link:%x,eflags:%x\r\n", procinfo->link, procinfo->eflags);
 		//__drawGraphChars((unsigned char*)szout, 0);
 

@@ -1,1 +1,115 @@
-﻿
+﻿  acpi.cpp
+  apic.cpp
+  atapi.cpp
+  cmosAlarm.cpp
+cmosAlarm.cpp(200): warning C4018: “>=”: 有符号/无符号不匹配
+  cmosTimer.cpp
+  coprocessor.cpp
+  debugger.cpp
+  descriptor.cpp
+  dosProcess.cpp
+  elf.cpp
+  exception.cpp
+  ext.cpp
+  FAT32.cpp
+fat32\FAT32.cpp(30): warning C4101: “szshow”: 未引用的局部变量
+fat32\FAT32.cpp(252): warning C4018: “<”: 有符号/无符号不匹配
+fat32\FAT32.cpp(276): warning C4018: “>=”: 有符号/无符号不匹配
+fat32\FAT32.cpp(308): warning C4018: “>=”: 有符号/无符号不匹配
+  FAT32Utils.cpp
+  Fat32File.cpp
+  FileUtils.cpp
+  file.cpp
+  floppy.cpp
+  gdi.cpp
+gdi.cpp(48): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+gdi.cpp(96): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+gdi.cpp(103): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+  hpet.cpp
+hpet.cpp(365): warning C4244: “参数”: 从“const unsigned __int64”转换到“unsigned short”，可能丢失数据
+  正在生成代码...
+  正在编译...
+  ios9660.cpp
+  hardware.cpp
+  ListEntry.cpp
+  math.cpp
+math.cpp(74): warning C4305: “初始化”: 从“double”到“float”截断
+math.cpp(75): warning C4305: “初始化”: 从“double”到“float”截断
+math.cpp(76): warning C4305: “初始化”: 从“double”到“float”截断
+math.cpp(77): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+math.cpp(78): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+math.cpp(87): warning C4244: “+=”: 从“double”转换到“float”，可能丢失数据
+math.cpp(89): warning C4305: “-=”: 从“double”到“float”截断
+math.cpp(109): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+  memory.cpp
+memory.cpp(53): warning C4018: “<”: 有符号/无符号不匹配
+memory.cpp(84): warning C4018: “>=”: 有符号/无符号不匹配
+memory.cpp(24): warning C4101: “szout”: 未引用的局部变量
+memory.cpp(151): warning C4018: “<”: 有符号/无符号不匹配
+memory.cpp(185): warning C4018: “<”: 有符号/无符号不匹配
+memory.cpp(161): warning C4101: “szout”: 未引用的局部变量
+  ntfs.cpp
+  ntfsFile.cpp
+NTFS\ntfsFile.cpp(269): warning C4018: “>=”: 有符号/无符号不匹配
+NTFS\ntfsFile.cpp(416): warning C4018: “>=”: 有符号/无符号不匹配
+  page.cpp
+page.cpp(95): warning C4018: “<=”: 有符号/无符号不匹配
+  peVirtual.cpp
+  PEresource.cpp
+  rs232.cpp
+  screenUtils.cpp
+  satadriver.cpp
+satadriver.cpp(246): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(249): warning C4244: “=”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(254): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(257): warning C4244: “=”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(453): warning C4244: “参数”: 从“unsigned long”转换到“unsigned char”，可能丢失数据
+satadriver.cpp(473): warning C4244: “参数”: 从“unsigned long”转换到“unsigned char”，可能丢失数据
+  kernel.cpp
+kernel.cpp(240): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(205): note: 参见“fopen”的声明
+kernel.cpp(270): warning C4101: “szout”: 未引用的局部变量
+  keyboard.cpp
+  mouse.cpp
+mouse.cpp(196): warning C4018: “<”: 有符号/无符号不匹配
+mouse.cpp(198): warning C4018: “<”: 有符号/无符号不匹配
+mouse.cpp(233): warning C4018: “<”: 有符号/无符号不匹配
+mouse.cpp(235): warning C4018: “<”: 有符号/无符号不匹配
+mouse.cpp(260): warning C4018: “<”: 有符号/无符号不匹配
+mouse.cpp(262): warning C4018: “<”: 有符号/无符号不匹配
+  pci.cpp
+  pe.cpp
+  sectorReader.cpp
+  servicesProc.cpp
+  正在生成代码...
+  正在编译...
+  slab.cpp
+  sbPlay.cpp
+soundBlaster\sbPlay.cpp(328): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+soundBlaster\sbPlay.cpp(331): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+soundBlaster\sbPlay.cpp(352): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+soundBlaster\sbPlay.cpp(356): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+  speaker.cpp
+  system.cpp
+  systemTimer.cpp
+  task.cpp
+  Thread.cpp
+Thread.cpp(38): warning C4101: “szout”: 未引用的局部变量
+  process.cpp
+  Utils.cpp
+  v86.cpp
+  video.cpp
+video.cpp(1203): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
+video.cpp(1209): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
+video.cpp(1241): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1242): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1247): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+video.cpp(1263): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1264): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1274): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+video.cpp(1277): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+  window.cpp
+  正在生成代码...
+    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Debug\kernel.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Debug\kernel.exp
+  kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Debug\kernel.exe
+  kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Debug\kernel.pdb (Full PDB)

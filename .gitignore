@@ -4,6 +4,7 @@
 *.ipch
 *.pdb
 *.ipch
+*.opendb
 
 # Object files
 *.o
