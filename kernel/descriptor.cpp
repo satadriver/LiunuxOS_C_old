@@ -12,6 +12,8 @@
 
 
 void initLdt(LPSEGDESCRIPTOR lpldt) {
+	//return;
+
 	lpldt->attr = 0xe2;
 	lpldt->baseHigh = (unsigned char)(LDT_BASE >> 24);
 	lpldt->baseLow = (unsigned short)(LDT_BASE & 0xffff);
