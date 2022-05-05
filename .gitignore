@@ -3,6 +3,7 @@
 *.VC.db
 *.ipch
 *.pdb
+*.ipch
 
 # Object files
 *.o
