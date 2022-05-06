@@ -25,14 +25,14 @@ typedef struct
 #pragma pack()
 
 
-LPMEMALLOCINFO checkAddrExist(DWORD addr);
+LPMEMALLOCINFO getExistAddrInfo(DWORD addr,int size);
 
 LPMEMALLOCINFO getFreeMemItem();
 
 
 int initMemory();
 
-DWORD getAlignSize(DWORD s, int max);
+DWORD pageAlignmentSize(DWORD size,int max);
 
 DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr);
 

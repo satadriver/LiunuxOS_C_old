@@ -172,8 +172,6 @@ extern "C"  __declspec(dllexport) void __kPageFaultProc() {
 		mov eax,cr3
 		mov rcr3,eax
 	}
-
-	
 }
 
 

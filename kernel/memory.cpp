@@ -28,7 +28,7 @@ DWORD initCr3(DWORD pefiledata) {
 	DWORD pedata = pefiledata;
 
 	DWORD allocsize = getSizeOfImage((char*)pedata);
-	allocsize = getAlignSize(allocsize, 1);
+	allocsize = pageAlignmentSize(allocsize, 1);
 
 	int tablecnt = allocsize / tablesize;
 	if (allocsize % tablesize)

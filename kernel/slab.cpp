@@ -33,27 +33,25 @@ DWORD gAllocLock = FALSE;
 //格式: BTS OPD, OPS
 //功能 :  源操作数OPS指定的位送CF标志, 目的操作数OPD中那一位置位.
 
-DWORD getAlignSize(DWORD s,int flag) {
-
+DWORD pageAlignmentSize(DWORD blocksize,int max)
+{
 	DWORD result = 0;
 
 	__asm {
 		xor eax, eax
-		xor edx, edx
-
-		mov ecx,dword ptr s
+		mov ecx,dword ptr blocksize
 		bsr eax,ecx
 		jz _Over
 		
+		xor edx, edx
 		bts edx,eax
-		cmp flag,0
+
+		cmp edx, blocksize
 		jz _minsize
-		cmp edx,s
+		cmp max,0
 		jz _minsize
 
 		shl edx, 1
-		mov result, edx
-		jmp _Over
 		_minsize:
 		mov result, edx
 		_Over :
@@ -107,7 +105,7 @@ int initMemory() {
 					gAllocLimitSize = (gAvailableSize - MEMMORY_HEAP_BASE) / 2;
 				}
 				
-				gAllocLimitSize = getAlignSize(gAllocLimitSize, 0);
+				gAllocLimitSize = pageAlignmentSize(gAllocLimitSize, 0);
 
 				int len = __printf(szout, "available memory address:%x,size:%x,alloc max size:%x\n",gAvailableBase,gAvailableSize, gAllocLimitSize);
 				__drawGraphChars((unsigned char*)szout, 0);
@@ -121,16 +119,20 @@ int initMemory() {
 }
 
 //检查物理地址是否存在，而不是虚拟地址
-LPMEMALLOCINFO checkAddrExist(DWORD addr) {
+LPMEMALLOCINFO getExistAddrInfo(DWORD addr,int size) {
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gMemAllocList;
 	do
 	{
 		if (info == 0 )
 		{
-			break;
+			return (LPMEMALLOCINFO)-1;
 		}
 
-		if ( (info->addr <= addr) && (addr < (info->addr + info->size )) )
+		if ( (info->addr <= addr) && ( info->addr + info->size > addr) )
+		{
+			return info;
+		}
+		else if ( (info->addr >= addr) && (  info->addr < addr + size ) )
 		{
 			return info;
 		}
@@ -161,18 +163,18 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	DWORD ret = 0;
 
-	DWORD size = getAlignSize(s, 1);
+	DWORD size = pageAlignmentSize(s, 1);
 	if ( size > gAllocLimitSize)
 	{
 		return FALSE;
 	}
 
-	*retsize = size;
-
 	if (size < PAGE_SIZE)
 	{
 		size = PAGE_SIZE;
 	}
+
+	*retsize = size;
 
 	__enterSpinLock(&gAllocLock);
 
@@ -185,7 +187,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	while (1)
 	{
-		LPMEMALLOCINFO info = checkAddrExist(addr);
+		LPMEMALLOCINFO info = getExistAddrInfo(addr,size);
 		if (info == 0)
 		{
 			info = getFreeMemItem();
@@ -210,6 +212,10 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			goto __kProcessMalloc_end;
 		}
 		else {
+			if (info == (LPMEMALLOCINFO )-1)
+			{
+				goto __kProcessMalloc_end;
+			}
 			if ( (info->size <= size) && (factor > 1) )
 			{
 				for (int i = 0; i < factor - 1; i++)
@@ -220,7 +226,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 						goto __kProcessMalloc_end;
 					}
 
-					info = checkAddrExist(addr);
+					info = getExistAddrInfo(addr,size);
 					if (info == 0)
 					{
 						info = getFreeMemItem();
@@ -319,7 +325,7 @@ int __kFree(DWORD physicalAddr) {
 
 	__enterSpinLock(&gAllocLock);
 
-	LPMEMALLOCINFO info = checkAddrExist(physicalAddr);
+	LPMEMALLOCINFO info = getExistAddrInfo(physicalAddr,0);
 	if (info)
 	{
 		DWORD size = info->size;
@@ -351,7 +357,7 @@ int __free(DWORD linearAddr) {
 	DWORD phyaddr = linear2phy(linearAddr);
 	if (phyaddr)
 	{
-		LPMEMALLOCINFO info = checkAddrExist(phyaddr);
+		LPMEMALLOCINFO info = getExistAddrInfo(phyaddr,0);
 		if (info)
 		{
 			DWORD size = info->size;
@@ -429,4 +435,33 @@ void freeProcessMemory() {
 	} while (info != gMemAllocList);
 
 	__leaveSpinLock(&gAllocLock);
+}
+
+
+
+
+
+unsigned char * splitBlock(unsigned char * base, int size) {
+	int blocksize = PAGE_SIZE;
+
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gMemAllocList;
+
+	unsigned char * ptr = base;
+
+	int max = pageAlignmentSize(size, TRUE);
+
+	while (blocksize < max)
+	{
+
+		addlistHead((LPLIST_ENTRY)gMemAllocList, (LPLIST_ENTRY)info);
+		blocksize = blocksize << 1;
+
+	}
+	
+	return 0;
+}
+
+
+unsigned char * __slab_malloc(int size) {
+	return 0;
 }
