@@ -39,7 +39,7 @@ char * dw2str(int dw) {
 	}
 }
 
-#define SHUTDOWN_SCREEN_DELAY 360
+
 
 unsigned char bcd2binary(char bcd) {
 	int low = (bcd & 0xf) ;
@@ -118,20 +118,7 @@ void __kCmosTimer() {
 }
 
 
-#define TIMER_PROC_MAX 16
 
-#pragma pack(1)
-typedef struct 
-{
-	DWORD func;
-	DWORD ticks;
-	DWORD tickcnt;
-	DWORD param1;
-	DWORD param2;
-	DWORD param3;
-	DWORD param4;
-}TIMER_PROC_PARAM;
-#pragma pack()
 
 TIMER_PROC_PARAM gCmosTimerDPC[TIMER_PROC_MAX] = { 0 };
 
@@ -190,6 +177,7 @@ void __kCmosExactTimerProc() {
 	int result = 0;
 	DWORD * lptickcnt = (DWORD*)CMOS_TICK_COUNT;
 	DWORD tickcnt = *lptickcnt;
+	//in both c and c++ language,the * priority is lower than ++
 	(*lptickcnt)++;
 
 	for (int i = 0;i < TIMER_PROC_MAX;i ++)
@@ -206,8 +194,7 @@ void __kCmosExactTimerProc() {
 
 				typedef int(*ptrfunction)(DWORD param1,DWORD param2,DWORD param3,DWORD param4);
 				ptrfunction lpfunction = (ptrfunction)gCmosTimerDPC[i].func;
-				result = lpfunction(gCmosTimerDPC[i].param1, gCmosTimerDPC[i].param2,
-					gCmosTimerDPC[i].param3, gCmosTimerDPC[i].param4 );
+				result = lpfunction(gCmosTimerDPC[i].param1, gCmosTimerDPC[i].param2,gCmosTimerDPC[i].param3, gCmosTimerDPC[i].param4 );
 			}
 		}
 	}
