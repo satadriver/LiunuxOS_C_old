@@ -1,3 +1,9 @@
-﻿    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.exp
+﻿  Utils.cpp
+  cmosAlarm.cpp
+cmosAlarm.cpp(193): warning C4018: “>=”: 有符号/无符号不匹配
+  cmosTimer.cpp
+  kernel.cpp
+  正在生成代码...
+    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.exp
   kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.dll
   kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.pdb (Full PDB)

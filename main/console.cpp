@@ -25,7 +25,8 @@
 
 int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 
-	char szout[0x4000];
+	//cmd size is always less than 256 bytes
+	char szout[0x1000];
 	int ret = 0;
 
 	TASKCMDPARAMS taskcmd;

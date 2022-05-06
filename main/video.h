@@ -44,7 +44,7 @@ typedef struct {
 // 以下为VBE2.0版本以上定义
 	int PhyBasePtr; //可使用的大的帧缓存时为指向其首址的32位物理地址
 	int OffScreenMemOffset; //帧缓存首址的32位偏移量
-	short OffScreenMemSize; //可用的, 连续的显示缓冲区, 以KB为单位
+	short OffScreenMemSize; //不可用的显示缓冲区, 以KB为单位
 // 50
 // 以下为VBE3.0版以上定义
 	short LinBytesPerScanLine; //线形缓冲区中每条扫描线的长度, 以字节为单位
@@ -74,6 +74,23 @@ typedef struct {
 
 }VESAINFOBLOCK;
 
+
+// vbe info：VGA图形系统相关参数
+typedef struct  {
+	char          VBESignature[4];            // 字符串"VESA"          
+	unsigned   short   VBEVersion;                 // VBE版本号，BCD码
+	char /*far*/* OEMStringPtr;              // 指向OEM厂商的标志串的指针        
+	long          Capabilities;               // 显示卡特性  
+	char /*far*/* VideoModePtr;              // 指向所支持显示模式列表的指针
+	unsigned    short  VRAMMemory;                 // 显示内存大小，单位为64KB      
+	// 以下为VESA VBE 2.0版本以上定义
+	unsigned  short    OemSoftwareRev;             // VBE软件的OEM修订版本号，BCD码
+	char /*far*/* OemVendorNamePtr;           // 指向显示卡制造厂商的字符串指针
+	char /*far*/* OemProductNamePtr;          // 指向显示卡制造商的字符串的指针
+	char /*far*/* OemProductRevPtr;           // 指向显示卡修订版本号或唱片等级的字符串的指针
+	char         reserved[222];               // 保留
+	char         OEMData[256];                // VESA2.0版以上定义
+} VBEINFO;
 
 #pragma pack()
 

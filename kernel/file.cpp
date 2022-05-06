@@ -72,8 +72,8 @@ int getMBR() {
 
 	if (*(WORD*)gMBR.systemFlag != 0xaa55)
 	{
-		__drawGraphChars((unsigned char*)"MBR format ERROR\r\n", 0);
-		//return FALSE;
+		__drawGraphChars((unsigned char*)"MBR format error\r\n", 0);
+		return FALSE;
 	}
 
 	g_mpartOffset = gMBR.dpt[0].offset;

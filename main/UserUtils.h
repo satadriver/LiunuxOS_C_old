@@ -3,7 +3,7 @@
 
 #include "def.h"
 
-#define COMMAND_LINE_STRING_LIMIT 64
+#define COMMAND_LINE_STRING_LIMIT 32
 
 int isTxtFile(char * filename, int fnlen);
 

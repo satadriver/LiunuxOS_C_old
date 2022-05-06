@@ -55,7 +55,7 @@ int getNetcard(DWORD * regs,DWORD * dev, DWORD * irq);
 
 int getSvga(DWORD * regs,DWORD * dev, DWORD * irq);
 
-int getSdcard(DWORD * regs, DWORD * dev, DWORD * irq);
+int getSoundcard(DWORD * regs, DWORD * dev, DWORD * irq);
 
 int getSmbus(DWORD * regs,DWORD * dev, DWORD * irq);
 

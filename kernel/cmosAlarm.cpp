@@ -96,23 +96,18 @@ unsigned short makehalf(unsigned char low, unsigned char high) {
 }
 
 
-typedef struct
-{
-	DWORD addr;
-	DWORD interval;
-	DWORD param;
-}CMOSALARM_PROCESS_LIST;
+
 
 
 
 CMOSALARM_PROCESS_LIST gCmosAlarmProc;
 
 
-
+//from assembly code
 void __kCmosAlarmProc() {
 
 	char szout[1024];
-	__printf(szout, "__kCmosAlarmProc\n");
+	__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
 	__drawGraphChars((unsigned char*)szout, 0);
 
 	DWORD addr = gCmosAlarmProc.addr;
@@ -128,8 +123,6 @@ void __kCmosAlarmProc() {
 			add esp,4
 		}
 	}
-
-
 }
 
 
@@ -214,7 +207,7 @@ void addCmosAlarmTimer(DWORD interval) {
 		}
 	}
 
-	writeCmosPort(0x0d, dstday);
+	//writeCmosPort(0x0d, dstday);
 	writeCmosPort(0x05, dsthour);
 	writeCmosPort(0x03, dstmin);
 	writeCmosPort(0x01, dstsecond);

@@ -32,7 +32,7 @@ DWORD *gCursorX = 0;
 DWORD *gCursorY = 0;
 int gCursorColor = 0;
 
-unsigned char gCursorBackup[1024];
+unsigned char *gCursorBackup =(unsigned char*) CURSOR_GRAPH_BASE;
 
 #define CURSOR_REFRESH_MILLISECONDS		200
 
@@ -251,6 +251,10 @@ void setCursor(int enable,DWORD *x, DWORD *y,unsigned int color) {
 	gCursorX = x;
 	gCursorY = y;
 	gCursorColor = color;
+
+	if (gCursorBackup == 0) {
+		gCursorBackup =(unsigned char*) CURSOR_GRAPH_BASE;
+	}
 
 	if (g_timeslip == 0 || SYSTEM_TIMER0_FACTOR == 0)
 	{

@@ -46,14 +46,14 @@ int __getVideoParams(LPVESAINFORMATION vesaInfo,DWORD fontbase){
 
 	__memcpy((char*)gVesaInfo + sizeof(VESAINFORMATION), (char*)vesaInfo + sizeof(VESAINFORMATION), sizeof(VESAINFOBLOCK));
 
-	DWORD svgaregs[16];
-	DWORD svgadev = 0;
-	DWORD svgairq = 0;
-	result = getBasePort(svgaregs, 0x0300, &svgadev, &svgairq);
-	if ( (svgaregs) && (svgaregs[0] & 1) == 0 )		//memory address
-	{
-		//gVesaInfo.PhyBasePtr = (svgaregs[0] & 0xfffffff0);
-	}
+// 	DWORD svgaregs[16];
+// 	DWORD svgadev = 0;
+// 	DWORD svgairq = 0;
+// 	result = getBasePort(svgaregs, 0x0300, &svgadev, &svgairq);
+// 	if ( (svgaregs) && (svgaregs[0] & 1) == 0 )		//memory address
+// 	{
+// 		gVesaInfo.PhyBasePtr = (svgaregs[0] & 0xfffffff0);
+// 	}
 	
 
 

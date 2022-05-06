@@ -2,6 +2,15 @@
 
 #include "def.h"
 
+#pragma pack(1)
+typedef struct
+{
+	DWORD addr;
+	DWORD interval;
+	DWORD param;
+}CMOSALARM_PROCESS_LIST;
+#pragma pack()
+
 unsigned char readCmosPort(unsigned char port);
 
 void writeCmosPort(unsigned char port, unsigned char value);

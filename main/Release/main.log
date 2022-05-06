@@ -1,4 +1,39 @@
-﻿    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.exp
+﻿cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
+  Explorer.cpp
+e:\virtualbox\vmshare\liunux\liunuxos_c\main\hept.h(29): warning C4200: 使用了非标准扩展: 结构/联合中的零大小数组
+  e:\virtualbox\vmshare\liunux\liunuxos_c\main\hept.h(29): note: 默认构造函数或 copy/move 赋值运算符将忽略此成员
+Explorer.cpp(146): warning C4018: “<”: 有符号/无符号不匹配
+Explorer.cpp(148): warning C4018: “<”: 有符号/无符号不匹配
+  FileManager.cpp
+FileManager.cpp(439): warning C4018: “<”: 有符号/无符号不匹配
+  FileManagerWindow.cpp
+  Menu.cpp
+Menu.cpp(24): warning C4018: “<=”: 有符号/无符号不匹配
+Menu.cpp(26): warning C4018: “<=”: 有符号/无符号不匹配
+Menu.cpp(56): warning C4018: “>=”: 有符号/无符号不匹配
+Menu.cpp(61): warning C4018: “>=”: 有符号/无符号不匹配
+Menu.cpp(77): warning C4018: “<=”: 有符号/无符号不匹配
+Menu.cpp(79): warning C4018: “<=”: 有符号/无符号不匹配
+Menu.cpp(106): warning C4018: “<”: 有符号/无符号不匹配
+  ntfsDirs.cpp
+NTFS\ntfsDirs.cpp(272): warning C4018: “>=”: 有符号/无符号不匹配
+  TaskBar.cpp
+  UserUtils.cpp
+  WindowClass.cpp
+  console.cpp
+  fat12.cpp
+fat12\fat12.cpp(159): warning C4244: “参数”: 从“unsigned long”转换到“short”，可能丢失数据
+  fat32dirs.cpp
+  jpeg.cpp
+  graph.cpp
+  ios9660.cpp
+ios9660\ios9660.cpp(126): warning C4018: “>=”: 有符号/无符号不匹配
+  machine.cpp
+  main.cpp
+  paint.cpp
+  sysregs.cpp
+  正在生成代码...
+    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.exp
   LINK : 已指定 /LTCG，但不需要生成代码；从链接命令行中移除 /LTCG 以提高链接器性能
   main.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.dll
   main.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.pdb (Full PDB)
