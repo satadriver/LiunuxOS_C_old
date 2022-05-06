@@ -12,7 +12,6 @@
 //bit0-2:0
 int getBasePort(DWORD * baseregs, WORD devClsVender,DWORD * dev,DWORD * irqpin) {
 
-
 	for (int bdf = 0x80000008; bdf <= 0x80010008; bdf += 0x100)			//offset 8,read class type,vender type
 	{
 		outportd(0xcf8, bdf);
@@ -69,7 +68,8 @@ int listpci(DWORD *dst) {
 			*lpdst = v;
 			lpdst++;
 			*lpdst = bdf;
-		
+			lpdst++;
+
 			cnt++;
 		}
 	}

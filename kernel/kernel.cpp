@@ -48,6 +48,8 @@ DWORD gKernel32;
 DWORD gKernelData;
 DWORD gAsmTsses;
 
+
+
 void getGdtIdt() {
 	DESCRIPTOR_REG gdt;
 	DESCRIPTOR_REG idt;
@@ -210,82 +212,11 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 	}
 }
 
-#include <stdio.h>
+
 
 //注意二位数组在内存中的排列和结构
 void mytest() {
 
-	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
-	WORD tmpesp = 0x1234;
-
-	__asm
-	{
-		push 0x87654321;
-
-		_emit 0xff
-		_emit 0x75
-		_emit 0xfc
-
-		push  tmpesp
-
-		push 0x12345678
-
-// 		//_emit 0x66
-// 		_emit 0x0f
-// 		_emit 0x1f
-// 		_emit 0x44
-// 		_emit 0x00
-// 		_emit 0x00
-	}
-	FILE * fp = fopen("res/elftest/test.so", "rb");
-
-	fseek(fp, 0, 2);
-
-	int filesize = ftell(fp);
-	fseek(fp, 0, 0);
-
-	char * data = new char[filesize + 0x10000];
-
-	int size = fread(data, 1, filesize, fp);
-
-	fclose(fp);
-
-
-	char * elfhdr = new char[0x100000];
-
-	char * elf = elfhdr + (0x10000 - ((DWORD)elfhdr & 0xffff));
-
-	int result = mapFile((DWORD)data,filesize, (DWORD)elf);
-
-	initElf((DWORD)data, filesize, (DWORD)elf);
-
-	realoc((DWORD)data,(DWORD)elf);
-
-	typedef int(*ptrfunction)(int x, int y);
-	DWORD addr = getSymAddrByName((DWORD)data, "__testfunction", (DWORD)elf);
-	if (addr)
-	{
-		ptrfunction lpfunction = (ptrfunction)addr;
-		result = lpfunction(6, 7);
-		char szout[1024];
-		//__sprintf(szout, "linux function result:%x\r\n", result);
-	}
-
-	//DWORD mainfunc= getSymAddrByName((unsigned int)data, "main", (DWORD)elf);
-
- 	DWORD finalfunc = getFiniSection((unsigned int)data,(DWORD)elf);
-	DWORD initarray = getInitSection((unsigned int)data, (DWORD)elf);
-
-	DWORD initsec = getInitArraySection((unsigned long)data, (DWORD)elf);
-	DWORD finalsec = getFiniArraySection((unsigned long)data, (DWORD)elf);
-
-	DWORD init = getInit((unsigned long)data, (DWORD)elf);
-	DWORD fini = getFini((unsigned long)data, (DWORD)elf);
-
-	for (int i = 0;i<100;i ++)
-	{
-		size -= 1;
-	}
 	return;
 }
 

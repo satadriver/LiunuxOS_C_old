@@ -17,6 +17,22 @@ DWORD gAllocLimitSize = 0;
 
 DWORD gAllocLock = FALSE;
 
+//Bit Scan Forward
+//格式: BSF dest, src
+//	影响标志位 : ZF
+//	功能：从源操作数的的最低位向高位搜索，将遇到的第一个“1”所在的位序号存入目标寄存器中，
+//	若所有位都是0，则ZF = 1，否则ZF = 0。
+
+//Bit Scan Reverse
+//BSR dest, src
+//	影响标志位 : ZF
+//	功能：从源操作数的的最高位向低位搜索，将遇到的第一个“1”所在的位序号存入目标寄存器中，
+//	若所有位都是0，则ZF = 1，否则ZF = 0。
+
+//BTS指令
+//格式: BTS OPD, OPS
+//功能 :  源操作数OPS指定的位送CF标志, 目的操作数OPD中那一位置位.
+
 DWORD getAlignSize(DWORD s,int flag) {
 
 	DWORD result = 0;

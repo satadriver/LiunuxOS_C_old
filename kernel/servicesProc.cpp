@@ -50,6 +50,7 @@ DWORD __kServicesProc(DWORD no, DWORD * params) {
 		{
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 			tss->sleep = times - 1;
+
 		}
 		__asm {
 			hlt;

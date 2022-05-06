@@ -34,9 +34,7 @@ void __kException(DWORD param) {
 		__emit 0x0f
 		__emit 0x20
 		__emit 0xe0
-		mov rcr4, eax
-
-		
+		mov rcr4, eax	
 	}
 
 
