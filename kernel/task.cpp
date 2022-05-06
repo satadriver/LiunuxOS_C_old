@@ -17,7 +17,7 @@
 
 TASK_LIST_ENTRY *gTasksListPtr = 0;
 
-
+DWORD g_taskLock = 0;
 
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
@@ -31,7 +31,18 @@ void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) 
 }
 
 
+TASK_LIST_ENTRY* searchTaskList(int tid) {
+	TASK_LIST_ENTRY* tasklist = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 
+	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)tasklist;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
+	{
+		if (list[i].valid  && list[i].process->status == TASK_RUN && list[i].process->tid == tid) {
+			return &list[i];
+		}
+	}
+	return 0;
+}
 
 
 TASK_LIST_ENTRY* addTaskList(int tid) {
@@ -43,9 +54,11 @@ TASK_LIST_ENTRY* addTaskList(int tid) {
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (list[i].valid == 0 ) {
+			list[i].valid = TRUE;
+
 			list[i].process = base + tid;
 			list[i].process->status = TASK_RUN;
-			list[i].valid = TRUE;
+			
 			addlistTail((LIST_ENTRY*)&tasklist->list, (LIST_ENTRY*)&list[i].list);
 			return &list[i];
 		}
@@ -62,11 +75,12 @@ TASK_LIST_ENTRY* removeTaskList(int tid) {
 	{
 		if (list->valid && list->process && list->process->tid == tid)
 		{
+			removelist((LIST_ENTRY*)&list->list);
+
 			list->process->status = TASK_OVER;
 			list->process = 0;
-			list->valid = 0;
 
-			removelist((LIST_ENTRY*)&list->list);
+			list->valid = FALSE;
 
 			return list;
 		}
