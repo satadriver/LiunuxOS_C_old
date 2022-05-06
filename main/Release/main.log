@@ -1,2 +1,4 @@
-﻿  main.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.dll
+﻿    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.exp
+  LINK : 已指定 /LTCG，但不需要生成代码；从链接命令行中移除 /LTCG 以提高链接器性能
+  main.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.dll
   main.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.pdb (Full PDB)
