@@ -1,4 +1,28 @@
-﻿  task.cpp
+﻿  descriptor.cpp
+  exception.cpp
+  kernel.cpp
+  pci.cpp
+  satadriver.cpp
+satadriver.cpp(246): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(249): warning C4244: “=”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(254): warning C4244: “参数”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(257): warning C4244: “=”: 从“unsigned long”转换到“unsigned short”，可能丢失数据
+satadriver.cpp(453): warning C4244: “参数”: 从“unsigned long”转换到“unsigned char”，可能丢失数据
+satadriver.cpp(473): warning C4244: “参数”: 从“unsigned long”转换到“unsigned char”，可能丢失数据
+  servicesProc.cpp
+  slab.cpp
+  task.cpp
+  video.cpp
+video.cpp(1203): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
+video.cpp(1209): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
+video.cpp(1241): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1242): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1247): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+video.cpp(1263): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1264): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+video.cpp(1274): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+video.cpp(1277): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+  正在生成代码...
     正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.exp
   kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.dll
   kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.pdb (Full PDB)
