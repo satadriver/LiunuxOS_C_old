@@ -78,6 +78,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	__kdBreakPoint();
 
+	
 	__kAddCmosAlarm(30, (DWORD)__doAlarmTask, 0);
 
 	//initEfer();

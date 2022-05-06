@@ -366,7 +366,7 @@ int repeatDrawCCFontString() {
 	result = initCCFont();
 	if (result)
 	{
-		__drawCCS((unsigned char*)"欢迎来到LIUNUX的世界！\r\n", 0xff0000);
+		__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
 		g_cc_timerno = __kAddCmosTimer((DWORD)drawCCFontChar, 300, (DWORD)&g_cc_poet, (DWORD)&g_cc_color, (DWORD)&g_cc_idx,
 			(DWORD)&g_cc_timerno);
 	}

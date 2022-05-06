@@ -1,9 +1,10 @@
 #pragma once
 #include "def.h"
 
-#define TIMER_PROC_MAX			16
 
-#define SHUTDOWN_SCREEN_DELAY	360
+#define TIMER_PROC_MAX 16
+
+#define SHUTDOWN_SCREEN_DELAY 360
 
 #pragma pack(1)
 typedef struct

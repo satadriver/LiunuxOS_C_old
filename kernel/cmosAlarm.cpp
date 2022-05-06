@@ -11,6 +11,7 @@
 #include "slab.h"
 #include "process.h"
 #include "Thread.h"
+#include "memory.h"
 
 
 
@@ -100,30 +101,7 @@ unsigned short makehalf(unsigned char low, unsigned char high) {
 
 
 
-CMOSALARM_PROCESS_LIST gCmosAlarmProc;
 
-
-//from assembly code
-void __kCmosAlarmProc() {
-
-	char szout[1024];
-	__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
-	__drawGraphChars((unsigned char*)szout, 0);
-
-	DWORD addr = gCmosAlarmProc.addr;
-	DWORD interval = gCmosAlarmProc.interval;
-	DWORD param = gCmosAlarmProc.param;
-	if (addr && interval)
-	{
-		__asm {
-			mov eax,param
-			push eax
-			mov eax,addr
-			call eax
-			add esp,4
-		}
-	}
-}
 
 
 
@@ -207,10 +185,10 @@ void addCmosAlarmTimer(DWORD interval) {
 		}
 	}
 
-	//writeCmosPort(0x0d, dstday);
-	writeCmosPort(0x05, dsthour);
-	writeCmosPort(0x03, dstmin);
-	writeCmosPort(0x01, dstsecond);
+	//writeCmosPort(0x0d, b2bcd(dstday));
+	writeCmosPort(0x05, b2bcd(dsthour));
+	writeCmosPort(0x03, b2bcd(dstmin));
+	writeCmosPort(0x01, b2bcd(dstsecond));
 
 	__asm {
 		sti
@@ -222,10 +200,39 @@ void addCmosAlarmTimer(DWORD interval) {
 }
 
 
-int __kAddCmosAlarm( DWORD interval, DWORD addr, DWORD param) {
+CMOSALARM_PROCESS_LIST gCmosAlarmProc;
+
+
+//from assembly code
+void __kCmosAlarmProc() {
+
+	char szout[1024];
+	__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
+	__drawGraphChars((unsigned char*)szout, 0);
+
+	return ;
+
+	DWORD addr = gCmosAlarmProc.addr;
+	DWORD interval = gCmosAlarmProc.interval;
+	DWORD param = gCmosAlarmProc.param;
+	if (addr && interval)
+	{
+		__asm {
+			mov eax, param
+			push eax
+			mov eax, addr
+			call eax
+			add esp, 4
+		}
+	}
+}
+
+int __kAddCmosAlarm( DWORD interval, DWORD linearaddr, DWORD param) {
 
 	if (gCmosAlarmProc.addr == 0 && gCmosAlarmProc.interval == 0)
 	{
+		DWORD addr = linear2phy((DWORD)linearaddr);
+
 		gCmosAlarmProc.addr = addr;
 		gCmosAlarmProc.interval = interval;
 		gCmosAlarmProc.param = param;

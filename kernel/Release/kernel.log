@@ -1,9 +1,5 @@
-﻿  cmosTimer.cpp
-  gdi.cpp
-gdi.cpp(48): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-gdi.cpp(96): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-gdi.cpp(103): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-  正在生成代码...
+﻿  cmosAlarm.cpp
+cmosAlarm.cpp(171): warning C4018: “>=”: 有符号/无符号不匹配
     正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.exp
   kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.dll
   kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.pdb (Full PDB)
