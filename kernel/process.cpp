@@ -194,6 +194,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	DWORD espsize = 0;
 	vaddr = tss->vaddr + tss->vasize;
 	LPTASKPARAMS params = 0;
+	DWORD heapsize = 0;
 	if (syslevel == 0)
 	{
 		tss->tss.ds = KERNEL_MODE_DATA;
@@ -222,6 +223,8 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE  - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+
+		heapsize = KTASK_STACK_SIZE;
 	}
 	else {
 		tss->tss.ds = USER_MODE_DATA | syslevel | 4;
@@ -250,8 +253,23 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+
+		heapsize = UTASK_STACK_SIZE;
 	}
+	
 	tss->vasize += espsize;
+
+	vaddr = tss->vaddr + tss->vasize;
+
+	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, pid, vaddr);
+	
+	result = phy2linear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
+
+	tss->heapbase = vaddr;
+
+	tss->heapsize = heapsize;
+	tss->vasize += heapsize;
+	
 
 	params->terminate = (DWORD)__terminateProcess;
 	params->terminate2 = (DWORD)__terminateProcess;

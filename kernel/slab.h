@@ -22,12 +22,30 @@ typedef struct
 	unsigned int LengthHigh;
 	unsigned int Type;
 }ADDRESS_RANGE_DESCRIPTOR_STRUCTURE;
+
+
+typedef struct  
+{
+	DWORD addr;
+	USHORT size;
+	UCHAR flag;
+	UCHAR reserved;
+}MS_HEAP_STRUCT;
+
+
+
 #pragma pack()
 
 
 LPMEMALLOCINFO getExistAddrInfo(DWORD addr,int size);
 
 LPMEMALLOCINFO getFreeMemItem();
+
+int getAlignedSize(int size, int allignsize);
+
+DWORD __heapAlloc(int size);
+
+DWORD __heapFree(DWORD addr);
 
 
 int initMemory();

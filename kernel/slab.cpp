@@ -13,6 +13,7 @@ DWORD gAvailableSize = 0;
 DWORD gAvailableBase = 0;
 
 LPMEMALLOCINFO gMemAllocList = 0;
+
 DWORD gAllocLimitSize = 0;
 
 DWORD gAllocLock = FALSE;
@@ -280,6 +281,8 @@ __kProcessMalloc_end:
 	return ret;
 }
 
+
+
 DWORD __kMalloc(DWORD s) {
 
 	DWORD size = 0;
@@ -290,6 +293,11 @@ DWORD __kMalloc(DWORD s) {
 
 
 DWORD __malloc(DWORD s) {
+	if (s < PAGE_SIZE)
+	{
+		return __heapAlloc(s);
+	}
+
 	char szout[1024];
 
 	DWORD size = 0;
@@ -351,6 +359,12 @@ int __kFree(DWORD physicalAddr) {
 
 //__malloc返回的是虚拟地址，应用程序调用
 int __free(DWORD linearAddr) {
+
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	if (linearAddr >= process->heapbase + process->heapsize)
+	{
+		return __heapFree(linearAddr);
+	}
 
 	__enterSpinLock(&gAllocLock);
 
@@ -437,6 +451,114 @@ void freeProcessMemory() {
 	__leaveSpinLock(&gAllocLock);
 }
 
+
+int getAlignedSize(int size, int allignsize) {
+	int allocsize = size;
+	int mod = size % allignsize;
+	if (mod)
+	{
+		allocsize = allocsize + (allignsize - mod);
+	}
+	return allocsize;
+}
+
+
+DWORD __heapFree(DWORD addr) {
+
+	MS_HEAP_STRUCT * lpheap = (MS_HEAP_STRUCT *)((UCHAR*)addr - sizeof(MS_HEAP_STRUCT));
+
+	if (lpheap->addr == addr)
+	{
+		MS_HEAP_STRUCT * prev = (MS_HEAP_STRUCT *)((UCHAR*)lpheap - sizeof(MS_HEAP_STRUCT) );
+
+		MS_HEAP_STRUCT * next = (MS_HEAP_STRUCT *)((UCHAR*)lpheap + (lpheap->size ) + (sizeof(MS_HEAP_STRUCT) << 1));
+
+		if ((prev->flag & 1)== 1 && (next->flag & 1)== 1)
+		{
+			lpheap->flag = 0;
+		}
+		else if ((prev->flag & 1) == 0 && (next->flag & 1)== 0)
+		{
+			prev->size = prev->size + lpheap->size + next->size + (sizeof(MS_HEAP_STRUCT)<<1) + (sizeof(MS_HEAP_STRUCT) << 1);
+			prev->flag = 0;
+		}
+		else if ((prev->flag & 1) == 1 && (next->flag & 1) == 0)
+		{
+			lpheap->size = lpheap->size + next->size + (sizeof(MS_HEAP_STRUCT) << 1);
+			lpheap->flag = 0;
+		}
+		else if ((prev->flag & 1) == 0 && (next->flag & 1) == 1)
+		{
+			prev->size = prev->size + lpheap->size + (sizeof(MS_HEAP_STRUCT) << 1);
+			prev->flag = 0;
+		}
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
+DWORD __heapAlloc(int size) {
+
+	int allocsize = getAlignedSize(size, sizeof(MS_HEAP_STRUCT));
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+
+	MS_HEAP_STRUCT * lpheap = (MS_HEAP_STRUCT *)tss->heapbase;
+
+	while ((DWORD)lpheap + allocsize + (sizeof(MS_HEAP_STRUCT) << 1) < tss->heapbase + tss->heapsize)
+	{
+		if ( (lpheap->flag & 1) && lpheap->size && lpheap->addr)
+		{
+			lpheap = (MS_HEAP_STRUCT *)((UCHAR*)lpheap + (lpheap->size ) + (sizeof(MS_HEAP_STRUCT) << 1));
+			continue;
+		}
+		else {
+			if (lpheap->size && lpheap->addr)
+			{
+				if ((lpheap->size) >= allocsize )
+				{
+					int oldsize = (lpheap->size );
+
+					lpheap->flag = 1;
+					lpheap->addr = (DWORD)((UCHAR*)lpheap + sizeof(MS_HEAP_STRUCT));
+					lpheap->size = allocsize ;
+
+					MS_HEAP_STRUCT * heapend = (MS_HEAP_STRUCT *)((UCHAR*)lpheap + (lpheap->size ) + sizeof(MS_HEAP_STRUCT));
+					heapend->addr = lpheap->addr;
+					heapend->size = lpheap->size;
+					heapend->flag = lpheap->flag;
+
+					MS_HEAP_STRUCT * next = (MS_HEAP_STRUCT *)((UCHAR*)lpheap + (lpheap->size ) + (sizeof(MS_HEAP_STRUCT) << 1));
+					next->size = (oldsize - allocsize - (sizeof(MS_HEAP_STRUCT) << 1));
+					next->addr = (DWORD)((UCHAR*)next + sizeof(MS_HEAP_STRUCT));
+					next->flag = 0;
+
+					return lpheap->addr;
+				}
+				else {
+					lpheap = (MS_HEAP_STRUCT *)((UCHAR*)lpheap + (lpheap->size ) + (sizeof(MS_HEAP_STRUCT) << 1));
+					continue;
+				}
+			}
+			else {
+				lpheap->flag = 1;
+				lpheap->addr = (DWORD)((UCHAR*)lpheap + sizeof(MS_HEAP_STRUCT));
+				lpheap->size = allocsize ;
+
+				MS_HEAP_STRUCT * heapend = (MS_HEAP_STRUCT *)((UCHAR*)lpheap + (lpheap->size ) + sizeof(MS_HEAP_STRUCT));
+				heapend->addr = lpheap->addr;
+				heapend->size = lpheap->size;
+				heapend->flag = lpheap->flag;
+
+				return lpheap->addr;
+			}
+		}
+	}
+	return 0;
+}
 
 
 

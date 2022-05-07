@@ -77,10 +77,14 @@ typedef struct
 	DWORD sleep;
 
 	//物理地址而不是线性地址
-	DWORD moduleaddr;
-	DWORD moduleLinearAddr;
+	DWORD moduleaddr;				//可执行模块物理基地址，用于区别进程和线程
+	DWORD moduleLinearAddr;			//可执行模块线性基地址，用于区别进程和线程
 
 	DWORD espbase;
+
+	DWORD heapbase;
+
+	DWORD heapsize;
 
 	DWORD vaddr;
 
