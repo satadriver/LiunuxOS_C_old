@@ -9,6 +9,8 @@
 #define MSF_INDEXROOT_FLAG		0X90
 #define MSF_INDEXALLOC_FLAG		0XA0
 
+#define NTFS_MFT_CLUSTER_NUMBER_MASK 0x0000ffffffffffff
+
 typedef enum _ATTRIBUTE_TYPE
 {
 	AttributeStandardInformation = 0x10,
@@ -27,14 +29,14 @@ typedef enum _ATTRIBUTE_TYPE
 	AttributeEA = 0xE0,
 	AttributePropertySet = 0xF0,
 	AttributeLoggedUtilityStream = 0x100
-} ATTRIBUTE_TYPE, *PATTRIBUTE_TYPE;
+} ATTRIBUTE_TYPE, * PATTRIBUTE_TYPE;
 
 #pragma pack(1)
 
 typedef struct _FILETIME {
 	DWORD dwLowDateTime;
 	DWORD dwHighDateTime;
-} FILETIME, *PFILETIME, *LPFILETIME;
+} FILETIME, * PFILETIME, * LPFILETIME;
 
 //DPT表项
 typedef struct _PartTableEntry {
@@ -48,14 +50,14 @@ typedef struct _PartTableEntry {
 	BYTE endCylinder;					//终止磁道
 	unsigned int startSectorNo;			//LBA寻址，起始扇区号
 	unsigned int totalSectorsNum;		//该分区扇区总数
-}PartTableEntry, *pPartTableEntry;
+}PartTableEntry, * pPartTableEntry;
 
 //MBR扇区
 typedef struct _MBRSector {
 	BYTE MBR[446];
 	PartTableEntry ptEntrys[4];
 	BYTE endSignature[2];
-}MBRSector, *pMBRSector;
+}MBRSector, * pMBRSector;
 
 //NTFS DBR扇区
 typedef struct _NTFSDBR {
@@ -84,7 +86,7 @@ typedef struct _NTFSDBR {
 	unsigned int checkSum;				//80 校验和
 	BYTE bootCode[426];					//84 引导代码
 	BYTE endSignature[2];				//510 结束标志
-}NTFSDBR, *LPNTFSDBR;
+}NTFSDBR, * LPNTFSDBR;
 
 //MFT表项的结构
 //文件记录头
@@ -106,7 +108,7 @@ typedef struct _FILE_RECORD_HEADER
 	/*+0x2C*/	UINT32  MFTRecordNumber;		//44 windows xp中使用,本MFT记录号
 	/*+0x30*/	UINT16  USN;					//48 更新序列号
 	/*+0x32*/	BYTE  UpdateArray[6];			//50 更新数组
-} FILE_RECORD_HEADER, *LPFILE_RECORD_HEADER;
+} FILE_RECORD_HEADER, * LPFILE_RECORD_HEADER;
 
 //常驻属性和非常驻属性的公用部分
 typedef struct _CommonAttributeHeader {
@@ -117,7 +119,7 @@ typedef struct _CommonAttributeHeader {
 	UINT16 ATTR_NamOff;		//10 属性名的偏移 相对于属性头
 	UINT16 ATTR_Flags;		//12 标志（0x0001压缩 0x4000加密 0x8000稀疏）
 	UINT16 ATTR_Id;			//14 属性唯一ID
-}CommonAttributeHeader, *LPCommonAttributeHeader;
+}CommonAttributeHeader, * LPCommonAttributeHeader;
 
 //常驻属性 属性头
 typedef struct _ResidentAttributeHeader {
@@ -127,7 +129,7 @@ typedef struct _ResidentAttributeHeader {
 	BYTE ATTR_Indx;			//6 22 索引
 	BYTE ATTR_Resvd;		//7 23 保留
 	//BYTE ATTR_AttrNam;	//8 24 属性名，Unicode，结尾无0
-}ResidentAttributeHeader, *LPResidentAttributeHeader;
+}ResidentAttributeHeader, * LPResidentAttributeHeader;
 
 //非常驻属性 属性头
 typedef struct _NonResidentAttributeHeader {
@@ -141,7 +143,7 @@ typedef struct _NonResidentAttributeHeader {
 	UINT64 ATTR_ValidSz;		//32 48属性的实际大小
 	UINT64 ATTR_InitedSz;		//40 56属性的初始大小
 	//BYTE ATTR_AttrNam[0];		//48 64
-}NonResidentAttributeHeader, *LPNonResidentAttributeHeader;
+}NonResidentAttributeHeader, * LPNonResidentAttributeHeader;
 
 /*下面是索引结构的定义*/
 
@@ -159,7 +161,7 @@ typedef struct _STD_INDEX_HEADER {
 	BYTE SIH_Fill[3];				//37 填充
 	UINT16 SIH_USN;					//40 更新序列号
 	BYTE SIH_USNArray[46];			//42 更新序列数组
-}STD_INDEX_HEADER, *LPSTD_INDEX_HEADER;
+}STD_INDEX_HEADER, * LPSTD_INDEX_HEADER;
 
 //标准索引项的结构
 typedef struct _STD_INDEX_ENTRY {
@@ -180,7 +182,7 @@ typedef struct _STD_INDEX_ENTRY {
 	UINT8 SIE_FileNameSize;				//80 文件名长度
 	UINT8 SIE_FileNamespace;			//81 文件命名空间
 	BYTE SIE_FileNameAndFill;			//82 文件名和填充
-}STD_INDEX_ENTRY, *LPSTD_INDEX_ENTRY;
+}STD_INDEX_ENTRY, * LPSTD_INDEX_ENTRY;
 
 typedef struct _INDEX_ENTRY {
 	UINT64 IE_MftReferNumber;			/*0 该文件的MFT参考号。注意：该值的低6字节是MFT记录号，高2字节是该MFT记录的序列号*/
@@ -208,7 +210,7 @@ typedef struct _INDEX_ENTRY {
 	BYTE IE_FileNameAndFill;			//82 文件名和填充
 										//BYTE IE_Stream[0];//目录项数据，结构与文件名属性的数据相同
 										//UINT64 IE_SubNodeFR;//子项的记录索引。该值的低6字节是MFT记录号，高2字节是该MFT记录的序列号
-}INDEX_ENTRY, *LPINDEX_ENTRY;
+}INDEX_ENTRY, * LPINDEX_ENTRY;
 
 /****下面定义的均是属性体的结构 不包括属性头****/
 
@@ -249,7 +251,7 @@ typedef struct _STANDARD_INFORMATION {
 	uint64 QuotaCharge;
 	USN Usn;
 #endif  
-}STANDARD_INFORMATION, *LPSTANDARD_INFORMATION;
+}STANDARD_INFORMATION, * LPSTANDARD_INFORMATION;
 
 
 //ATTRIBUTE_LIST 0X20属性体
@@ -264,7 +266,7 @@ typedef struct _ATTRIBUTE_LIST {
 	UINT16 AL_RD_AttrId;
 	//BYTE AL_RD_Name[0];
 	UINT16 AlignmentOrReserved[3];
-}ATTRIBUTE_LIST, *LPATTRIBUTE_LIST;
+}ATTRIBUTE_LIST, * LPATTRIBUTE_LIST;
 
 //FILE_NAME 0X30属性体
 typedef struct _FILE_NAME {
@@ -279,18 +281,20 @@ typedef struct _FILE_NAME {
 	UINT32 FN_EA_Reparse;	//60 扩展属性与链接
 	BYTE FN_NameSz;			//64 文件名的字符数
 	BYTE FN_NamSpace;		//65
-					/*命名空间，该值可为以下值中的任意一个
-					 0：POSIX　可以使用除NULL和分隔符“/”之外的所有UNICODE字符，最大可以使用255个字符。注意：“：”是合法字符，但Windows不允许使用。
-					 1：Win32　Win32是POSIX的一个子集，不区分大小写，可以使用除““”、“＊”、“?”、“：”、“/”、“<”、“>”、“/”、“|”之外的任意UNICODE字符，但名字不能以“.”或空格结尾。
-					 2：DOS　DOS命名空间是Win32的子集，只支持ASCII码大于空格的8BIT大写字符并且不支持以下字符““”、“＊”、“?”、“：”、“/”、“<”、“>”、“/”、“|”、“+”、“,”、“;”、“=”；同时名字必须按以下格式命名：1~8个字符，然后是“.”，然后再是1~3个字符。
-					 3：Win32&DOS　这个命名空间意味着Win32和DOS文件名都存放在同一个文件名属性中。*/
+/*命名空间，该值可为以下值中的任意一个
+	0：POSIX　可以使用除NULL和分隔符“/”之外的所有UNICODE字符，最大可以使用255个字符。注意：“：”是合法字符，但Windows不允许使用。
+	1：Win32　Win32是POSIX的一个子集，不区分大小写，可以使用除““”、“＊”、“?”、“：”、“/”、“<”、“>”、“/”、“|”之外的任意UNICODE字符，
+	但名字不能以“.”或空格结尾。
+	2：DOS　DOS命名空间是Win32的子集，只支持ASCII码大于空格的8BIT大写字符并且不支持以下字符““”、“＊”、“?”、“：”、“/”、“<”、“>”、“/”、
+	“|”、“+”、“,”、“;”、“=”；同时名字必须按以下格式命名：1~8个字符，然后是“.”，然后再是1~3个字符。
+	3：Win32&DOS　这个命名空间意味着Win32和DOS文件名都存放在同一个文件名属性中。*/
 	BYTE FN_FileName;		//66;
-}FILE_NAME, *LPFILE_NAME;
+}FILE_NAME, * LPFILE_NAME;
 
 //VOLUME_VERSION 
 typedef struct _VOLUME_VERSION {
 	//??
-}VOLUME_VERSION, *pVOLUME_VERSION;
+}VOLUME_VERSION, * pVOLUME_VERSION;
 
 //OBJECT_ID 0X40属性体
 typedef struct _OBJECT_ID {
@@ -298,17 +302,17 @@ typedef struct _OBJECT_ID {
 	BYTE OID_BirthVolID[16];	//文件建立时所在卷的ID
 	BYTE OID_BirthID[16];		//文件的原始ID
 	BYTE OID_DomainID[16];		//对象所创建时所在域的ID
-}OBJECT_ID, *LPOBJECT_ID;
+}OBJECT_ID, * LPOBJECT_ID;
 
 //SECRUITY_DESCRIPTOR 0X50属性体
 typedef struct _SECRUITY_DESCRIPTOR {
 	//??
-}SECRUITY_DESCRIPTOR, *LPSECRUITY_DESCRIPTOR;
+}SECRUITY_DESCRIPTOR, * LPSECRUITY_DESCRIPTOR;
 
 //VOLUME_NAME 0X60属性体
 typedef struct _VOLUME_NAME {
 	BYTE VN_Name;
-}VOLUME_NAME, *LPVOLUME_NAME;
+}VOLUME_NAME, * LPVOLUME_NAME;
 
 //VOLUME_INFORMATION 0X70属性体
 typedef struct _VOLUME_INFORMATION {
@@ -323,7 +327,7 @@ typedef struct _VOLUME_INFORMATION {
 					0x0010    启动时删除USN
 					0x0020    修复过的ID
 					0x8000    被chkdsk修改过*/
-}VOLUME_INFORMATION, *LPVOLUME_INFORMATION;
+}VOLUME_INFORMATION, * LPVOLUME_INFORMATION;
 
 //DATA 0X80属性体
 typedef struct _DATA {
@@ -339,7 +343,7 @@ typedef struct _DATA {
 	///*+0x40*/   UINT64 InitializedSize;   //44 60 实际数据大小  
 	///*+0x48*/   UINT64 CompressedSize;    //52 68 压缩后大小 
 	BYTE D_data;							//60 76
-}DATA, *LPDATA;
+}DATA, * LPDATA;
 
 typedef struct _INDEX_HEADER {
 	UINT32 IH_EntryOff;				//0 第一个目录项的偏移
@@ -350,7 +354,7 @@ typedef struct _INDEX_HEADER {
 									0x00       小目录(数据存放在根节点的数据区中)
 									0x01       大目录(需要目录项存储区和索引项位图)*/
 	BYTE IH_Resvd[3];				//13
-}INDEX_HEADER, *LPINDEX_HEADER;
+}INDEX_HEADER, * LPINDEX_HEADER;
 
 //INDEX_ROOT 0X90属性体
 typedef struct _INDEX_ROOT {
@@ -362,7 +366,7 @@ typedef struct _INDEX_ROOT {
 	BYTE IR_Resvd[3];			//13
 	INDEX_HEADER IH;			//16 索引头				
 	//BYTE IR_IndexEntry;		//32 索引项 可能不存在
-}INDEX_ROOT, *LPINDEX_ROOT;
+}INDEX_ROOT, * LPINDEX_ROOT;
 
 
 
@@ -370,17 +374,17 @@ typedef struct _INDEX_ROOT {
 typedef struct _INDEX_ALLOCATION {
 	//UINT64 IA_DataRuns;
 	BYTE IA_DataRuns;
-}INDEX_ALLOCATION, *LPINDEX_ALLOCATION;
+}INDEX_ALLOCATION, * LPINDEX_ALLOCATION;
 
 //BITMAP
 typedef struct _MFT_ATTR_BITMAP {
 	//??
-}MFT_ATTR_BITMAP, *LPMFT_ATTR_BITMAP;
+}MFT_ATTR_BITMAP, * LPMFT_ATTR_BITMAP;
 
 //SYMBOL_LINK
 typedef struct _SYMBOL_LINK {
 	//??
-}SYMBOL_LINK, *LPSYMBOL_LINK;
+}SYMBOL_LINK, * LPSYMBOL_LINK;
 
 //REPARSE_POINT
 typedef struct _REPARSE_POINT {
@@ -398,14 +402,14 @@ typedef struct _REPARSE_POINT {
 	UINT16 RP_DatSz;		//重解析数据尺寸
 	UINT16 RP_Resvd;
 	BYTE RP_Data;		//	重解析数据
-}REPARSE_POINT, *LPREPARSE_POINT;
+}REPARSE_POINT, * LPREPARSE_POINT;
 
 //EA_INFORMATION
 typedef struct _EA_INFORMATION {
 	UINT16 EI_PackedSz;				//	压缩扩展属性尺寸
 	UINT16 EI_NumOfEA;				//拥有NEED_EA记录的扩展属性个数
 	UINT32 EI_UnpackedSz;			//未压缩扩展属性尺寸
-}EA_INFORMATION, *LPEA_INFORMATION;
+}EA_INFORMATION, * LPEA_INFORMATION;
 
 //EA
 typedef struct _EA {
@@ -414,18 +418,26 @@ typedef struct _EA {
 	BYTE EA_NamLen;			//名字数据的长度(M)
 	UINT16 EA_ValLen;		//值数据的长度
 	BYTE EA_NameVal;		//名字数据和值数据
-}EA, *LPEA;
+}EA, * LPEA;
 
 //PROPERTY_SET
 typedef struct _PROPERTY_SET {
 	//??
-}PROPERTY_SET, *LPPROPERTY_SET;
+}PROPERTY_SET, * LPPROPERTY_SET;
 
 //LOGGED_UNTILITY_STREAM
 typedef struct _LOGGED_UNTILITY_STREAM {
 	//??
-}LOGGED_UNTILITY_STREAM, *LPLOGGED_UNTILITY_STREAM;
+}LOGGED_UNTILITY_STREAM, * LPLOGGED_UNTILITY_STREAM;
 
+
+typedef struct _VCN_FLASH
+{
+	unsigned char VcnLen : 4;        // 簇流长度 *8*512 才是得到的文件字节数  
+	unsigned char StartVcnLen : 4;   // 簇流起始位置--簇号  
+
+	unsigned char Data[1];         // 簇流长度&Data + 簇流起始位置&Data+VcnLen 数据部分  
+}VCN_FLASH, * PVCN_FLASH;
 
 
 #pragma pack()
@@ -433,7 +445,7 @@ typedef struct _LOGGED_UNTILITY_STREAM {
 int initNTFS();
 
 
-
+int getNtfsClusterStream(unsigned char* ptr, unsigned __int64* clsno, DWORD* clscnt);
 
 #ifdef DLL_EXPORT
 
@@ -459,3 +471,25 @@ extern "C" __declspec(dllimport) int readMSFRoot();
 
 
 #define MSF_ROOTDIR_OFFSET 10
+
+/*
+
+序号	元文件	功能
+0	$MFT	主文件表本身，是每个文件的索引
+1	$MFTMirr	主文件表的部分镜像
+2	$LogFile	事务型日志文件
+3	$Volume	卷文件，记录卷标等信息
+4	$AttrDef	属性定义列表文件
+5	$Root	根目录文件，管理根目录
+6	$Bitmap	位图文件，记录了分区中簇的使用情况
+7	$Boot	引导文件，记录了用于系统引导的数据情况
+8	$BadClus	坏簇列表文件
+9	$Quota（NTFS4）	在早期的Windows NT系统中此文件为磁盘配额信息
+10	$Secure	安全文件
+11	$UpCase	大小写字符转换表文件
+12	$Extend metadata directory	扩展元数据目录
+13	$Extend\$Reparse	重解析点文件
+14	$Extend\$UsnJrnl	加密日志文件
+15	$Extend\$Quota	配额管理文件
+16	$Extend\$ObjId	对象ID文件
+*/

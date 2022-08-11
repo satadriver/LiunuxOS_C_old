@@ -1,4 +1,2 @@
-﻿  process.cpp
-    正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.exp
-  kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.dll
-  kernel.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\kernel.pdb (Full PDB)
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets\v141_xp\Toolset.targets(39,5): warning MSB8051: 面向 Windows XP 的支持已被弃用，将来的 Visual Studio 版本不再提供该支持。请访问 https://go.microsoft.com/fwlink/?linkid=2023588，获取详细信息。
+  kernel.vcxproj -> D:\work\LiunuxOS_C\Release\kernel.dll

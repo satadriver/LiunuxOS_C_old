@@ -14,7 +14,7 @@
 
 
 
-DWORD getIndexDirs( char * buf, LPFILEBROWSER pathname) {
+unsigned long getIndexDirs(char* buf, LPFILEBROWSER pathname) {
 
 	int cnt = 0;
 
@@ -27,7 +27,7 @@ DWORD getIndexDirs( char * buf, LPFILEBROWSER pathname) {
 	}
 
 	LPSTD_INDEX_HEADER hdr = (LPSTD_INDEX_HEADER)buf;
-	char * baseaddr = (char*)&hdr->SIH_IndexEntryOffset;
+	char* baseaddr = (char*)&hdr->SIH_IndexEntryOffset;
 	LPSTD_INDEX_ENTRY idxentry = (LPSTD_INDEX_ENTRY)(baseaddr + hdr->SIH_IndexEntryOffset);
 
 	while (1)
@@ -43,14 +43,14 @@ DWORD getIndexDirs( char * buf, LPFILEBROWSER pathname) {
 		}
 
 		int fnlen = idxentry->SIE_FileNameSize;
-		char * fn = (char*)((unsigned int)idxentry + sizeof(STD_INDEX_ENTRY) - 1);
+		char* fn = (char*)((unsigned int)idxentry + sizeof(STD_INDEX_ENTRY) - 1);
 		char ascfn[256];
 		int asclen = unicode2asc((short*)fn, fnlen, ascfn);
 
 		ret = upper2lower(ascfn, __strlen(ascfn));
 
 		__strcpy(pathname->pathname, ascfn);
-		pathname->secno = (DWORD)idxentry->SIE_MFTReferNumber;
+		pathname->secno = (DWORD)(idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff);
 		pathname->filesize = (DWORD)idxentry->SIE_FileRealSize;
 		pathname->attrib = (DWORD)idxentry->SIE_FileFlag;
 		if (pathname->attrib & 0x10000000)
@@ -63,15 +63,16 @@ DWORD getIndexDirs( char * buf, LPFILEBROWSER pathname) {
 		pathname++;
 		cnt++;
 
-		if ((DWORD)idxentry->SIE_MFTReferNumber == 0 &&
-			(idxentry->SIE_IndexEntrySize < sizeof(STD_INDEX_ENTRY) || idxentry->SIE_IndexEntrySize >= 0x200))
+		if ((idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff) == 0 &&
+			(idxentry->SIE_IndexEntrySize < sizeof(STD_INDEX_ENTRY) /*|| idxentry->SIE_IndexEntrySize >= 0x200*/))
 		{
-			idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + 0x60);
+			//break;
+			//idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + 0x60);
 		}
 		else {
-			idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + idxentry->SIE_IndexEntrySize);
+
 		}
-		
+		idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + idxentry->SIE_IndexEntrySize);
 	}
 
 	return cnt;
@@ -81,7 +82,7 @@ DWORD getIndexDirs( char * buf, LPFILEBROWSER pathname) {
 
 DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
 	int ret = 0;
-	
+
 
 	if (hdr->ATTR_ResFlag)
 	{
@@ -100,7 +101,7 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
 		unsigned int entrysize = ih->IH_TalSzOfEntries - sizeof(INDEX_HEADER);
 		while (1)
 		{
-			if ( entry->IE_Size <= sizeof(STD_INDEX_ENTRY))
+			if (entry->IE_Size <= sizeof(STD_INDEX_ENTRY))
 			{
 				break;
 			}
@@ -111,14 +112,14 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
 			}
 
 			int fnlen = entry->IE_FileNameSize;
-			char * fn = (char*)((unsigned int)entry + sizeof(INDEX_ENTRY) - 1);
+			char* fn = (char*)((unsigned int)entry + sizeof(INDEX_ENTRY) - 1);
 			char ascfn[256];
 			int asclen = unicode2asc((short*)fn, fnlen, ascfn);
 
 			ret = upper2lower(ascfn, __strlen(ascfn));
 
 			__strcpy(pathname->pathname, ascfn);
-			pathname->secno = (DWORD)entry->IE_MftReferNumber;
+			pathname->secno = (DWORD)(entry->IE_MftReferNumber & 0x0000ffffffffffff);
 
 			pathname->filesize = (DWORD)entry->IE_FileRealSize;
 			pathname->attrib = (DWORD)entry->IE_FileFlag;
@@ -141,7 +142,7 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
 }
 
 
-int getNtfsDirs(DWORD secoff, LPFILEBROWSER pathname,DWORD father) {
+int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father) {
 	int ret = 0;
 
 	int cnt = 0;
@@ -159,7 +160,7 @@ int getNtfsDirs(DWORD secoff, LPFILEBROWSER pathname,DWORD father) {
 	char szout[1024];
 
 	DWORD low = secoff & 0xffffffff;
-	DWORD high = 0;
+	DWORD high = secoff >> 32;
 	char msfinfo[MFTEntrySize * 2];
 	ret = readSector(low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
@@ -169,9 +170,9 @@ int getNtfsDirs(DWORD secoff, LPFILEBROWSER pathname,DWORD father) {
 		return cnt;
 	}
 
-	char * buffer = (char*)__kMalloc(g_ClusterSize<<1);
+	char* buffer = (char*)__kMalloc(g_ClusterSize << 1);
 
-	FILE_RECORD_HEADER * frh = (FILE_RECORD_HEADER*)msfinfo;
+	FILE_RECORD_HEADER* frh = (FILE_RECORD_HEADER*)msfinfo;
 	LPCommonAttributeHeader attr = (LPCommonAttributeHeader)(msfinfo + sizeof(FILE_RECORD_HEADER));
 	while (1)
 	{
@@ -181,70 +182,73 @@ int getNtfsDirs(DWORD secoff, LPFILEBROWSER pathname,DWORD father) {
 			{
 
 				LPNonResidentAttributeHeader res = (LPNonResidentAttributeHeader)attr;
-				unsigned char * data = (unsigned char*)attr + res->ATTR_DatOff;
+				unsigned char* data = (unsigned char*)attr + res->ATTR_DatOff;
 
-				unsigned int clsno = 0;
+				unsigned long long clsno = 0;
 
 				int i = 0;
-
-				int flag = 0;
 
 				while (*(data + i))
 				{
 					int clscntbytes = (*(data + i) & 0xf);
-
 					int clsnobytes = ((*(data + i) & 0xf0) >> 4);
+					if (clscntbytes == 0 || clscntbytes > 4 || clsnobytes == 0 || clsnobytes > 4)
+					{
+						return FALSE;
+						break;
+					}
 
 					i++;
 
-					int clscnt = 0;
-
-					char * lpclscnt = (char*)&clscnt;
-
-					short nextclsno = 0;
-
-					char * lpclsno = 0;
-					if (flag)
-					{
-						lpclsno = (char*)&nextclsno;
-					}
-					else {
-						lpclsno = (char*)&clsno;
-						flag = 1;
-					}
-
+					unsigned __int64 clscnt = 0;
+					char* lpclscnt = (char*)&clscnt;
 					for (int j = 0; j < clscntbytes; j++)
 					{
-						*lpclscnt = *(data + i);
-						lpclscnt++;
-						i++;
+						lpclscnt[j] = data[i + j];
 					}
+					i += clscntbytes;
 
-					for (int j = 0; j < clsnobytes; j++)
+
+					unsigned __int64 nextclsno = 0;
+					char* lpclsno = (char*)&nextclsno;
+					for (int k = 0; k < clsnobytes; k++)
 					{
-						*lpclsno = *(data + i);
-						lpclsno++;
-						i++;
+						lpclsno[k] = data[i + k];
+					}
+					i += clsnobytes;
+
+					if (clscnt == 2 && (nextclsno & 0x8000))
+					{
+						nextclsno = nextclsno | 0xffffffffffff0000;
+					}
+					else if (clscnt == 3 && (nextclsno & 0x800000))
+					{
+						nextclsno = nextclsno | 0xffffffffff000000;
+					}
+					else if (clscnt == 4 && (nextclsno & 0x80000000))
+					{
+						nextclsno = nextclsno | 0xffffffff00000000;
 					}
 
-					clsno += (int)nextclsno;
 
-					__printf(szout, "filename:%s,sector:%x,cluster no:%x,count:%x\n", pathname, secoff, clsno, clscnt);
+					clsno += nextclsno;
+
+					__printf(szout, "read filename:%s,sector:%x,cluster number:%x,count:%x\n", pathname, secoff, clsno, clscnt);
 					__drawGraphChars((unsigned char*)szout, 0);
 
-					DWORD idxsecoff = gNtfsDbr.hideSectors + clsno*g_SecsPerCluster;
+					unsigned long long idxsecoff = gNtfsDbr.hideSectors + clsno * g_SecsPerCluster;
 					DWORD low = idxsecoff & 0xffffffff;
-					DWORD high = 0;
-					
-					ret = readSector((DWORD)low, high, g_SecsPerCluster*clscnt, (char*)buffer);
+					DWORD high = idxsecoff >> 32;
+
+					ret = readSector(low, high, (DWORD)(g_SecsPerCluster * clscnt), (char*)buffer);
 					if (ret <= 0)
 					{
-						__printf(szout, "getNtfsDirs readSector at sector:%x,count:%x error in index\n", (DWORD)idxsecoff, g_SecsPerCluster*clscnt);
+						__printf(szout, "getNtfsDirs readSector at sector:%x,count:%x error in 0xA0\n", (DWORD)idxsecoff, g_SecsPerCluster * clscnt);
 						__drawGraphChars((unsigned char*)szout, 0);
 						break;
 					}
 					else {
-						char * dirdata = (char*)buffer;
+						char* dirdata = (char*)buffer;
 						for (int i = 0; i < clscnt; i++)
 						{
 							cnt += getIndexDirs((char*)dirdata, pathname);

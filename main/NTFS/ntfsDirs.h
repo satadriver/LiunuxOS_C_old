@@ -3,4 +3,4 @@
 #include "../FileManager.h"
 #include "../file.h"
 
-int getNtfsDirs(DWORD secoff, LPFILEBROWSER pathname,DWORD father);
+int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father);
