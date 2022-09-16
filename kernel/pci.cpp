@@ -10,7 +10,7 @@
 //bit 8-10:function no
 //bit 2-6: register no
 //bit0-2:0
-int getBasePort(DWORD * baseregs, WORD devClsVender,DWORD * dev,DWORD * irqpin) {
+int getBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin) {
 
 	for (int bdf = 0x80000008; bdf <= 0x80010008; bdf += 0x100)			//offset 8,read class type,vender type
 	{
@@ -22,13 +22,13 @@ int getBasePort(DWORD * baseregs, WORD devClsVender,DWORD * dev,DWORD * irqpin) 
 			if (v == devClsVender)
 			{
 				*dev = bdf;
-				
-				DWORD * lpdst = (DWORD*)baseregs;
+
+				DWORD* lpdst = (DWORD*)baseregs;
 
 				int baseregidx = (bdf & 0xffffff00) + 0x10;
 
-				for (int i = 0;i < 6;i ++)
-				{	
+				for (int i = 0; i < 6; i++)
+				{
 					outportd(0xcf8, baseregidx);
 					v = inportd(0xcfc);
 					*lpdst = v;
@@ -52,14 +52,14 @@ int getBasePort(DWORD * baseregs, WORD devClsVender,DWORD * dev,DWORD * irqpin) 
 
 
 
-int listpci(DWORD *dst) {
+int listpci(DWORD* dst) {
 	int cnt = 0;
 
-	DWORD * lpdst = (DWORD*)dst;
+	DWORD* lpdst = (DWORD*)dst;
 
-	for (int bdf = 0x80000008; bdf <= 0x80010008;bdf += 0x100)			//offset 8,read class type,vender type
+	for (int bdf = 0x80000008; bdf <= 0x80010008; bdf += 0x100)			//offset 8,read class type,vender type
 	{
-		outportd(0xcf8,bdf);
+		outportd(0xcf8, bdf);
 		DWORD v = inportd(0xcfc);
 		if (v && v != 0xffffffff)
 		{
@@ -79,7 +79,7 @@ int listpci(DWORD *dst) {
 
 
 void showAllPciDevs() {
-	unsigned long devbuf[1096];
+	unsigned long devbuf[0x1000];
 	int cnt = listpci(devbuf);
 	if (cnt > 0)
 	{
@@ -94,24 +94,24 @@ void showAllPciDevs() {
 	}
 }
 
-int getNetcard(DWORD * regs,DWORD * dev,DWORD * irq){
-	return getBasePort(regs,0x0200,dev,irq);
+int getNetcard(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getBasePort(regs, 0x0200, dev, irq);
 }
 
-int getSvga(DWORD * regs,DWORD * dev, DWORD * irq){
-	return getBasePort(regs,0x0300,dev,irq);
+int getSvga(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getBasePort(regs, 0x0300, dev, irq);
 }
 
-int getSoundcard(DWORD * regs,DWORD * dev, DWORD * irq){
-	return getBasePort(regs,0x0401,dev,irq);
+int getSoundcard(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getBasePort(regs, 0x0401, dev, irq);
 }
 
-int getSmbus(DWORD * regs,DWORD * dev, DWORD * irq){
-	return getBasePort(regs,0x0c05,dev,irq);
+int getSmbus(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getBasePort(regs, 0x0c05, dev, irq);
 }
 
-int getUsb(DWORD * regs,DWORD * dev, DWORD * irq){
-	return getBasePort(regs,0x0c03,dev,irq);
+int getUsb(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getBasePort(regs, 0x0c03, dev, irq);
 }
 
 

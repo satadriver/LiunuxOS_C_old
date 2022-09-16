@@ -22,8 +22,9 @@
 #include "slab.h"
 #include "Thread.h"
 #include "machine.h"
+#include "pci.h"
 
-int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
+int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 
 	//cmd size is always less than 256 bytes
 	char szout[0x1000];
@@ -42,7 +43,7 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 
 	if (__strcmp(params[0], "dump") == 0 && paramcnt >= 2)
 	{
-		char * filename = params[1];
+		char* filename = params[1];
 		int fnlen = __strlen(filename);
 		if (__memcmp(filename + fnlen - 4, ".bmp", 4) == 0)
 		{
@@ -51,7 +52,7 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 			//DWORD addr = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
 
-			return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS,0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (__memcmp(filename + fnlen - 4, ".jpg", 4) == 0 || __memcmp(filename + fnlen - 5, ".jpeg", 5) == 0)
 		{
@@ -84,14 +85,14 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 			{
 				if (paramcnt >= 4)
 				{
-					return __kCreateProcessFromName( filename, params[2], 3, (DWORD)params[3]);
+					return __kCreateProcessFromName(filename, params[2], 3, (DWORD)params[3]);
 				}
 				else {
-					return __kCreateProcessFromName( filename, params[2], 3, 0);
+					return __kCreateProcessFromName(filename, params[2], 3, 0);
 				}
 			}
 			else {
-				return __kCreateProcessFromName( filename, filename, 3, 0);
+				return __kCreateProcessFromName(filename, filename, 3, 0);
 			}
 		}
 		else if (__memcmp(filename + fnlen - 4, ".wav", 4) == 0)
@@ -134,7 +135,7 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 	}
 	else if (__strcmp(params[0], "loadfiles") == 0)
 	{
-		DATALOADERINFO * info = (DATALOADERINFO *)gKernelData;
+		DATALOADERINFO* info = (DATALOADERINFO*)gKernelData;
 		__printf(szout, "flag:%s,mbr:%d,mbrbak:%d,loaderSec:%d,loaderSecCnt:%d,kSec:%d,kSecCnt:%d,kdllSec:%d,kdllSecCnt:%d,mdllSec:%d,mdllSecCnt:%d,fontSec:%d,fontSecCnt:%d\r\n",
 			&info->_flags, info->_bakMbrSecOff, info->_bakMbr2SecOff, info->_loaderSecOff, info->_loaderSecCnt,
 			info->_kernelSecOff, info->_kernelSecCnt, info->_kdllSecOff, info->_kdllSecCnt,
@@ -175,22 +176,22 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 	}
 	else if (__strcmp(params[0], "alloc") == 0)
 	{
-		if (paramcnt>=3)
+		if (paramcnt >= 3)
 		{
 			int size = __hstr2i((unsigned char*)params[1]);
 			int cnt = __hstr2i((unsigned char*)params[2]);
-			for (int i = 0;i < cnt;i++)
+			for (int i = 0; i < cnt; i++)
 			{
 				DWORD addr = __malloc(size);
 				__printf(szout, "malloc size:%x,address:%x\r\n", size, addr);
 				ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 			}
 		}
-		else if (paramcnt >= 2 )
+		else if (paramcnt >= 2)
 		{
 			int size = __hstr2i((unsigned char*)params[1]);
 			DWORD addr = __malloc(size);
-			__printf(szout, "malloc size:%x,address:%x\r\n", size,addr);
+			__printf(szout, "malloc size:%x,address:%x\r\n", size, addr);
 			ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
@@ -230,7 +231,7 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 		}
 	}
 
-	else if (__strcmp(params[0],"memlist") == 0 && paramcnt >= 2)
+	else if (__strcmp(params[0], "memlist") == 0 && paramcnt >= 2)
 	{
 		int pid = __hstr2i((unsigned char*)params[1]);
 		*szout = 0;
@@ -250,7 +251,7 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 		__printf(szout, "%x\r\n", cnt);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0],"time") == 0)
+	else if (__strcmp(params[0], "time") == 0)
 	{
 		__printf(szout, "%s\n", (char*)CMOS_DATETIME_STRING);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
@@ -260,11 +261,11 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 		DWORD l = 0;
 		DWORD h = 0;
 		__asm {
-			rdtsc 
-			mov l,eax
-			mov h,edx
+			rdtsc
+			mov l, eax
+			mov h, edx
 		}
-		__printf(szout, "rdtsc:%x%x\n", h,l);
+		__printf(szout, "rdtsc:%x%x\n", h, l);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdpmc") == 0)
@@ -272,7 +273,7 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 		DWORD l = 0;
 		DWORD h = 0;
 		__asm {
-			mov eax,0
+			mov eax, 0
 			rdpmc
 			mov l, eax
 			mov h, edx
@@ -309,11 +310,12 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 		if (__strcmp(params[0], "inp ") == 0)
 		{
 			__asm {
-				mov edx,port
-				mov eax,n
-				out dx,eax
+				mov edx, port
+				mov eax, n
+				out dx, eax
 			}
-		}else if (__strcmp(params[0], "outp ") == 0)
+		}
+		else if (__strcmp(params[0], "outp ") == 0)
 		{
 			__asm {
 				mov edx, port
@@ -332,16 +334,20 @@ int __cmd(char * cmd,WINDOWCLASS* window,char * pidname,int pid) {
 		__printf(szout, "cpuinfo:%s,cpu type:%s\n", cpuinfo, cputype);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "pcidev") == 0)
+	{
+		showAllPciDevs();
+	}
 	return 0;
 }
 
 
-int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWORD param) {
+int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
 
-//	char szout[1024];
-// 	__printf(szout, "__kConsole task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, pid, filename,funcname,param);
-// 	__drawGraphChars((unsigned char*)szout, 0);
+	//	char szout[1024];
+	// 	__printf(szout, "__kConsole task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, pid, filename,funcname,param);
+	// 	__drawGraphChars((unsigned char*)szout, 0);
 
 	unsigned char szcmd[MAX_PATH_SIZE];
 	__memset((char*)szcmd, 0, MAX_PATH_SIZE);
@@ -370,8 +376,8 @@ int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWO
 		}
 		else if (asc == 9)
 		{
-			char *sztab = "    ";
-			__outputConsole((unsigned char*)sztab, DEFAULT_FONT_COLOR,&window);
+			char* sztab = "    ";
+			__outputConsole((unsigned char*)sztab, DEFAULT_FONT_COLOR, &window);
 		}
 		else if (asc == 0x0a)
 		{
@@ -381,7 +387,7 @@ int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWO
 
 			window.showX = (window.pos.x + (window.frameSize >> 1));
 
-			window.showY = (window.showY + GRAPHCHAR_HEIGHT*window.zoomin);
+			window.showY = (window.showY + GRAPHCHAR_HEIGHT * window.zoomin);
 			if (window.showY >= window.pos.y + window.height + window.capHeight + (window.frameSize >> 1))
 			{
 				window.showY = window.pos.y + window.capHeight + (window.frameSize >> 1);
@@ -391,7 +397,7 @@ int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWO
 				//sti
 			}
 
-			__cmd((char*)szcmd,&window,filename, tid);
+			__cmd((char*)szcmd, &window, filename, tid);
 
 			cmdptr = 0;
 			szcmd[cmdptr] = 0;
@@ -417,7 +423,7 @@ int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWO
 
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-		ret = __kGetMouse(&mouseinfo,window.id);
+		ret = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
 			if (mouseinfo.x >= window.shutdownx && mouseinfo.x <= window.shutdownx + window.capHeight)
@@ -434,9 +440,9 @@ int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWO
 		}
 		else if (mouseinfo.status & 4)	//middle click
 		{
-// 			menu.pos.x = mouseinfo.x;
-// 			menu.pos.y = mouseinfo.y;
-// 			menu.action = mouseinfo.status;
+			// 			menu.pos.x = mouseinfo.x;
+			// 			menu.pos.y = mouseinfo.y;
+			// 			menu.action = mouseinfo.status;
 		}
 
 		__sleep(0);
@@ -446,7 +452,7 @@ int __kConsole(unsigned int retaddr,int tid, char * filename,char * funcname,DWO
 
 
 
-int __outputConsole(unsigned char * font, int color,WINDOWCLASS * window) {
+int __outputConsole(unsigned char* font, int color, WINDOWCLASS* window) {
 	__asm {
 		//cli
 	}
@@ -463,18 +469,18 @@ int __outputConsole(unsigned char * font, int color,WINDOWCLASS * window) {
 }
 
 
-int __clearChar(WINDOWCLASS * window) {
+int __clearChar(WINDOWCLASS* window) {
 	__asm {
 		//cli
 	}
 
-	window->showX -= GRAPHCHAR_WIDTH*window->zoomin;
-	if ( (window->showX < window->pos.x + (window->frameSize >> 1)) && 
-		(window->showY > window->pos.y + window->capHeight + (window->frameSize >> 1)) )
+	window->showX -= GRAPHCHAR_WIDTH * window->zoomin;
+	if ((window->showX < window->pos.x + (window->frameSize >> 1)) &&
+		(window->showY > window->pos.y + window->capHeight + (window->frameSize >> 1)))
 	{
-		window->showX = window->pos.x + (window->frameSize >> 1) + window->width - GRAPHCHAR_WIDTH*window->zoomin;
+		window->showX = window->pos.x + (window->frameSize >> 1) + window->width - GRAPHCHAR_WIDTH * window->zoomin;
 
-		window->showY -= (GRAPHCHAR_HEIGHT*window->zoomin);
+		window->showY -= (GRAPHCHAR_HEIGHT * window->zoomin);
 		if (window->showY < window->pos.y + window->capHeight + (window->frameSize >> 1))
 		{
 			window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
@@ -496,25 +502,25 @@ int __clearChar(WINDOWCLASS * window) {
 }
 
 
-int __outputConsoleStr(unsigned char * font, int color, int bgcolor,WINDOWCLASS * window) {
+int __outputConsoleStr(unsigned char* font, int color, int bgcolor, WINDOWCLASS* window) {
 
 	int len = __strlen((char*)font);
 
 	unsigned int pos = __getpos(window->showX, window->showY) + gGraphBase;
 
-	unsigned char * showpos = (unsigned char *)pos ;
-	unsigned char * keepy = showpos;
-	unsigned char * keepx = keepy;
+	unsigned char* showpos = (unsigned char*)pos;
+	unsigned char* keepy = showpos;
+	unsigned char* keepx = keepy;
 
 	for (int i = 0; i < len; i++)
 	{
 		unsigned int ch = font[i];
 		if (ch == '\n')
 		{
-			int posy = (unsigned int)(showpos - gGraphBase ) / gBytesPerLine;
+			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
 			int posx = window->pos.x + (window->frameSize >> 1);
-			
-			posy += (GRAPHCHAR_HEIGHT*window->zoomin);
+
+			posy += (GRAPHCHAR_HEIGHT * window->zoomin);
 			if (posy >= window->pos.y + window->height + window->capHeight + (window->frameSize >> 1))
 			{
 				posy = window->pos.y + window->capHeight + (window->frameSize >> 1);
@@ -536,7 +542,7 @@ int __outputConsoleStr(unsigned char * font, int color, int bgcolor,WINDOWCLASS 
 		}
 
 		int idx = ch << 3;
-		unsigned char * p = (unsigned char*)gFontBase + idx;
+		unsigned char* p = (unsigned char*)gFontBase + idx;
 		for (int j = 0; j < GRAPHCHAR_HEIGHT; j++)
 		{
 			unsigned char f = p[j];
@@ -547,7 +553,7 @@ int __outputConsoleStr(unsigned char * font, int color, int bgcolor,WINDOWCLASS 
 				if (f & m)
 				{
 					c = color;
-					for (int n = 0; n < gBytesPerPixel*window->zoomin; n++)
+					for (int n = 0; n < gBytesPerPixel * window->zoomin; n++)
 					{
 						*showpos = c;
 						c = c >> 8;
@@ -556,7 +562,7 @@ int __outputConsoleStr(unsigned char * font, int color, int bgcolor,WINDOWCLASS 
 				}
 				else {
 					c = bgcolor;
-					for (int n = 0; n < gBytesPerPixel*window->zoomin; n++)
+					for (int n = 0; n < gBytesPerPixel * window->zoomin; n++)
 					{
 						*showpos = c;
 						c = c >> 8;
@@ -570,22 +576,22 @@ int __outputConsoleStr(unsigned char * font, int color, int bgcolor,WINDOWCLASS 
 				m = m >> 1;
 			}
 
-			keepx += gBytesPerLine*window->zoomin;
+			keepx += gBytesPerLine * window->zoomin;
 			showpos = keepx;
 		}
 
-		keepy = keepy + GRAPHCHAR_WIDTH*gBytesPerPixel*window->zoomin;
+		keepy = keepy + GRAPHCHAR_WIDTH * gBytesPerPixel * window->zoomin;
 
 		int posx = (((unsigned int)keepy - gGraphBase) % gBytesPerLine) / gBytesPerPixel;
-		if (posx >= window->width + window->pos.x + (window->frameSize >> 1) )
+		if (posx >= window->width + window->pos.x + (window->frameSize >> 1))
 		{
 			posx = (window->pos.x + (window->frameSize >> 1));
 			int posy = (unsigned int)(keepy - gGraphBase) / gBytesPerLine;
-			posy += (GRAPHCHAR_HEIGHT*window->zoomin);
+			posy += (GRAPHCHAR_HEIGHT * window->zoomin);
 			if (posy >= window->pos.y + window->height + window->capHeight + (window->frameSize >> 1))
 			{
 				posy = window->pos.y + window->capHeight + (window->frameSize >> 1);
-			}	
+			}
 			keepy = (unsigned char*)__getpos(posx, posy) + gGraphBase;
 		}
 

@@ -46,26 +46,26 @@
 //1111 1111 1111 1111 1111 1111 1111 1111
 #include "def.h"
 
-int listpci(DWORD *dst);
-void showAllPciDevs();
+int listpci(DWORD* dst);
 
-int getBasePort(DWORD * baseregs, WORD devClsVender,DWORD * dev, DWORD * irqpin);
+int getBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin);
 
-int getNetcard(DWORD * regs,DWORD * dev, DWORD * irq);
+int getNetcard(DWORD* regs, DWORD* dev, DWORD* irq);
 
-int getSvga(DWORD * regs,DWORD * dev, DWORD * irq);
+int getSvga(DWORD* regs, DWORD* dev, DWORD* irq);
 
-int getSoundcard(DWORD * regs, DWORD * dev, DWORD * irq);
+int getSoundcard(DWORD* regs, DWORD* dev, DWORD* irq);
 
-int getSmbus(DWORD * regs,DWORD * dev, DWORD * irq);
+int getSmbus(DWORD* regs, DWORD* dev, DWORD* irq);
 
-int getUsb(DWORD * regs,DWORD * dev, DWORD * irq);
+int getUsb(DWORD* regs, DWORD* dev, DWORD* irq);
 
 #ifdef DLL_EXPORT
-
 extern "C"  __declspec(dllexport) int showPciDevs();
+extern "C"  __declspec(dllexport) void showAllPciDevs();
 #else
 extern "C"  __declspec(dllimport) int showPciDevs();
+extern "C"  __declspec(dllimport) void showAllPciDevs();
 #endif
 
 

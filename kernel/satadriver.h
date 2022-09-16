@@ -9,6 +9,9 @@
 #define HD_LBA48READ_COMMAND	0X24
 #define HD_LBA48WRITE_COMMAND	0X34
 
+#define HD_DMAREAD_COMMAND		0XC8
+#define HD_DMAWRITE_COMMAND		0XCA
+
 //multiple read command can read more than one sector with instruction rep insw/insb/insd
 #define HD_MUTIPLEREAD_COMMAND		0X29
 #define HD_MUTIPLEWRITE_COMMAND		0X39
@@ -28,12 +31,12 @@ typedef struct
 	unsigned int segoff;
 	unsigned int secnolow;
 	unsigned int secnohigh;
-}INT13PAT, *LPINT13PAT;
+}INT13PAT, * LPINT13PAT;
 
 
 typedef struct
 {
-	unsigned char bwork;	
+	unsigned char bwork;
 	unsigned char intno;
 	unsigned int reax;		//2
 	unsigned int recx;		//6
@@ -44,25 +47,25 @@ typedef struct
 	unsigned short res;		//1a
 	unsigned short rds;		//1c
 	unsigned int result;	//1e
-}V86VMIPARAMS, *LPV86VMIPARAMS;
+}V86VMIPARAMS, * LPV86VMIPARAMS;
 
 #pragma pack()
 
-int getHarddiskInfo(char * buf);
+int getHarddiskInfo(char* buf);
 
-int readSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char * buf,int device);
+int readSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf, int device);
 
-int writeSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char * buf, int device);
-
-
-int readSectorLBA24(unsigned int secno, unsigned char seccnt, char * buf, int device);
-
-int writeSectorLBA24(unsigned int secno, unsigned char seccnt, char * buf, int device);
+int writeSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf, int device);
 
 
-int readSectorLBA24Mimo(unsigned int secno, unsigned char seccnt, char * buf, int device);
+int readSectorLBA24(unsigned int secno, unsigned char seccnt, char* buf, int device);
 
-int readSectorLBA48Mimo(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char * buf, int device);
+int writeSectorLBA24(unsigned int secno, unsigned char seccnt, char* buf, int device);
+
+
+int readSectorLBA24Mimo(unsigned int secno, unsigned char seccnt, char* buf, int device);
+
+int readSectorLBA48Mimo(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf, int device);
 
 int waitFree(WORD port);
 int waitComplete(WORD port);
@@ -75,27 +78,27 @@ void __initStatusPort(unsigned char master_slave);
 
 int getHdPort();
 
-int readPortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char * buf);
-int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char * buf);
+int readPortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
+int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 
-int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char * buf);
-int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char * buf);
+int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
+int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 
 #ifdef DLL_EXPORT
-extern "C"  __declspec(dllexport)  int vm86ReadBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char * buf, int disk,int sectorsize);
-extern "C"  __declspec(dllexport)  int vm86WriteBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char * buf, int disk, int sectorsize);
-extern "C"  __declspec(dllexport)  int(__cdecl * readSector)(unsigned int secnolow,DWORD secnohigh, unsigned int seccnt, char * buf);
-extern "C"  __declspec(dllexport)  int(__cdecl * writeSector)(unsigned int secnolow,DWORD secnohigh, unsigned int seccnt, char * buf);
+extern "C"  __declspec(dllexport)  int vm86ReadBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C"  __declspec(dllexport)  int vm86WriteBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C"  __declspec(dllexport)  int(__cdecl * readSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
+extern "C"  __declspec(dllexport)  int(__cdecl * writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
 #else
-extern "C"  __declspec(dllimport)  int vm86ReadBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char * buf, int disk, int sectorsize);
-extern "C"  __declspec(dllimport)  int vm86WriteBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char * buf, int disk, int sectorsize);
-extern "C"  __declspec(dllimport)  int(__cdecl * readSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char * buf);
-extern "C"  __declspec(dllimport)  int(__cdecl * writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char * buf);
+extern "C"  __declspec(dllimport)  int vm86ReadBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C"  __declspec(dllimport)  int vm86WriteBlock(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C"  __declspec(dllimport)  int(__cdecl * readSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
+extern "C"  __declspec(dllimport)  int(__cdecl * writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
 #endif
 
 
 
 
- 
+
 
 
