@@ -1,6 +1,8 @@
 # LiunuxOS
 
-liunuxos系统c语言部分。
+liunuxos系统c语言部分，以及linux、windows系统上的安装模块。
+
+主要功能：
 
  1. 进程线程创建和调度。时钟计时器每过一个计时周期就会触发一次中断，这就是liunuxos的线程切换频率，大概为1ms。
 
