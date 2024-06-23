@@ -3,7 +3,7 @@
 #include "video.h"
 #include "Utils.h"
 #include "screenUtils.h"
-#include "slab.h"
+#include "malloc.h"
 #include "ListEntry.h"
 #include "memory.h"
 

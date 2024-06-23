@@ -57,7 +57,7 @@
     <ClCompile Include="video.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.cpp">
+    <ClCompile Include="utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="mouse.cpp">
@@ -129,7 +129,7 @@
     <ClCompile Include="speaker.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="dosProcess.cpp">
+    <ClCompile Include="processDOS.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="window.cpp">
@@ -150,10 +150,10 @@
     <ClCompile Include="servicesProc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="slab.cpp">
+    <ClCompile Include="malloc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ListEntry.cpp">
+    <ClCompile Include="listEntry.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="peVirtual.cpp">
@@ -165,7 +165,7 @@
     <ClCompile Include="page.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Thread.cpp">
+    <ClCompile Include="thread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="coprocessor.cpp">
@@ -183,7 +183,7 @@
     <ClCompile Include="process.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="PEresource.cpp">
+    <ClCompile Include="peResource.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="hpet.cpp">
@@ -203,7 +203,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Kernel.h">
+    <ClInclude Include="kernel.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="descriptor.h">
@@ -218,7 +218,7 @@
     <ClInclude Include="video.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
+    <ClInclude Include="utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="mouse.h">
@@ -290,7 +290,7 @@
     <ClInclude Include="speaker.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dosProcess.h">
+    <ClInclude Include="processDOS.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="window.h">
@@ -314,10 +314,10 @@
     <ClInclude Include="servicesProc.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="slab.h">
+    <ClInclude Include="malloc.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ListEntry.h">
+    <ClInclude Include="listEntry.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="peVirtual.h">
@@ -329,7 +329,7 @@
     <ClInclude Include="page.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Thread.h">
+    <ClInclude Include="thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="coprocessor.h">
@@ -344,7 +344,7 @@
     <ClInclude Include="process.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="PEresource.h">
+    <ClInclude Include="peResource.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="hpet.h">

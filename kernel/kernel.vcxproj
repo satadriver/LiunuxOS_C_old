@@ -22,13 +22,13 @@
     <ProjectGuid>{22AB469F-C5DA-4C43-AA87-401816E082D7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>kernel</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -174,7 +174,7 @@
     <ClCompile Include="coprocessor.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="descriptor.cpp" />
-    <ClCompile Include="dosProcess.cpp" />
+    <ClCompile Include="processDOS.cpp" />
     <ClCompile Include="elf.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="ext\ext.cpp" />
@@ -188,14 +188,14 @@
     <ClCompile Include="hpet.cpp" />
     <ClCompile Include="ios9660\ios9660.cpp" />
     <ClCompile Include="hardware.cpp" />
-    <ClCompile Include="ListEntry.cpp" />
+    <ClCompile Include="listEntry.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="NTFS\ntfs.cpp" />
     <ClCompile Include="NTFS\ntfsFile.cpp" />
     <ClCompile Include="page.cpp" />
     <ClCompile Include="peVirtual.cpp" />
-    <ClCompile Include="PEresource.cpp" />
+    <ClCompile Include="peResource.cpp" />
     <ClCompile Include="rs232.cpp" />
     <ClCompile Include="screenUtils.cpp" />
     <ClCompile Include="satadriver.cpp" />
@@ -206,15 +206,15 @@
     <ClCompile Include="pe.cpp" />
     <ClCompile Include="sectorReader.cpp" />
     <ClCompile Include="servicesProc.cpp" />
-    <ClCompile Include="slab.cpp" />
+    <ClCompile Include="malloc.cpp" />
     <ClCompile Include="soundBlaster\sbPlay.cpp" />
     <ClCompile Include="speaker.cpp" />
     <ClCompile Include="system.cpp" />
     <ClCompile Include="systemTimer.cpp" />
     <ClCompile Include="task.cpp" />
-    <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="thread.cpp" />
     <ClCompile Include="process.cpp" />
-    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="utils.cpp" />
     <ClCompile Include="v86.cpp" />
     <ClCompile Include="video.cpp" />
     <ClCompile Include="window.cpp" />
@@ -229,7 +229,7 @@
     <ClInclude Include="debugger.h" />
     <ClInclude Include="def.h" />
     <ClInclude Include="descriptor.h" />
-    <ClInclude Include="dosProcess.h" />
+    <ClInclude Include="processDOS.h" />
     <ClInclude Include="elf.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="ext\ext.h" />
@@ -243,33 +243,33 @@
     <ClInclude Include="hpet.h" />
     <ClInclude Include="ios9660\ios9660.h" />
     <ClInclude Include="hardware.h" />
-    <ClInclude Include="ListEntry.h" />
+    <ClInclude Include="listEntry.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="NTFS\ntfs.h" />
     <ClInclude Include="NTFS\ntfsFile.h" />
     <ClInclude Include="page.h" />
     <ClInclude Include="peVirtual.h" />
-    <ClInclude Include="PEresource.h" />
+    <ClInclude Include="peResource.h" />
     <ClInclude Include="rs232.h" />
     <ClInclude Include="screenUtils.h" />
     <ClInclude Include="satadriver.h" />
-    <ClInclude Include="Kernel.h" />
+    <ClInclude Include="kernel.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="pci.h" />
     <ClInclude Include="Pe.h" />
     <ClInclude Include="sectorReader.h" />
     <ClInclude Include="servicesProc.h" />
-    <ClInclude Include="slab.h" />
+    <ClInclude Include="malloc.h" />
     <ClInclude Include="soundBlaster\sbPlay.h" />
     <ClInclude Include="speaker.h" />
     <ClInclude Include="system.h" />
     <ClInclude Include="systemTimer.h" />
     <ClInclude Include="task.h" />
-    <ClInclude Include="Thread.h" />
+    <ClInclude Include="thread.h" />
     <ClInclude Include="process.h" />
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="v86.h" />
     <ClInclude Include="video.h" />
     <ClInclude Include="window.h" />

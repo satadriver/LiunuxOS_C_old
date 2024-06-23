@@ -4,7 +4,7 @@
 #include "Kernel.h"
 #include "window.h"
 #include "mouse.h"
-#include "slab.h"
+#include "malloc.h"
 #include "task.h"
 #include "math.h"
 #include "gdi.h"
@@ -1202,7 +1202,7 @@ int __drawLine(int x1, int y1, int x2, int y2, DWORD color) {
 		x++;
 	}
 
-
+	return 0;
 }
 
 

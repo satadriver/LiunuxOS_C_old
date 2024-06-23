@@ -112,7 +112,7 @@ int testHdPort(unsigned short port) {
 		jmp _checkHdPortEnd
 		_checkHdPortErr :
 		mov eax, 0
-			_checkHdPortEnd :
+		_checkHdPortEnd :
 	}
 }
 
@@ -127,7 +127,7 @@ int testHdPortMimo(unsigned short port) {
 		jmp _checkHdPortEnd
 		_checkHdPortErr :
 		mov eax, 0
-			_checkHdPortEnd :
+		_checkHdPortEnd :
 	}
 }
 

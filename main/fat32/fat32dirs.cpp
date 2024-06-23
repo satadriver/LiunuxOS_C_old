@@ -7,7 +7,7 @@
 #include "../video.h"
 #include "FAT32Utils.h"
 #include "../FileManager.h"
-#include "../slab.h"
+#include "../malloc.h"
 
 
 int getFat32RootDirs(LPFAT32DIRECTORY dir,LPFILEBROWSER files) {

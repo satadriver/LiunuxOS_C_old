@@ -1,5 +1,5 @@
 #include "elf.h"
-#include "slab.h"
+#include "malloc.h"
 #include "video.h"
 #include "Utils.h"
 #include "file.h"

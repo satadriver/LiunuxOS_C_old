@@ -104,8 +104,18 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		}
 
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
+
+#ifdef SINGLE_TASK_TSS
+		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
+		ret0->cs = tss->tss.cs;
+		ret0->eip = tss->tss.eip;
+		ret0->eflags = tss->tss.eflags;
+		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+#else
 		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#endif
 	}
 	else {
 		tss->tss.ds = USER_MODE_DATA | tss->level;
@@ -133,6 +143,17 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#ifdef SINGLE_TASK_TSS
+		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
+		ret3->ret0.cs = tss->tss.cs;
+		ret3->ret0.eip = tss->tss.eip;
+		ret3->ret0.eflags = tss->tss.eflags;
+		ret3->esp3 = (DWORD)tss->tss.esp;
+		ret3->ss3 = tss->tss.ss;
+
+		tss->espBak = (DWORD)ret3;
+#else
+#endif
 	}
 	//还没有addTaskList,导致当前的tss中的vasize错误
 	tss->vasize += espsize;

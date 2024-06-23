@@ -4,12 +4,12 @@
 #include "Kernel.h"
 #include "video.h"
 #include "Pe.h"
-#include "dosProcess.h"
+#include "processDOS.h"
 #include "file.h"
 #include "systemTimer.h"
 #include "page.h"
 #include "def.h"
-#include "slab.h"
+#include "malloc.h"
 
 
 
@@ -119,9 +119,18 @@ int __initTask() {
 	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
 	process0->level = 0;
 	process0->counter = 0;
-	//process0->tss.iomapEnd = 0xff;
-	//process0->tss.iomapOffset = 136;
-	//process0->tss.cr3 = PDE_ENTRY_VALUE;
+	process0->tss.esp0 = TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	process0->tss.iomapOffset = 136;
+	process0->tss.iomapEnd = 0xff; 
+	__asm {
+		mov ax,cs
+		movzx eax,ax
+		//mov process0.tss.ss0,eax
+	}
+	//process0->tss.ss0 = 0x10;
+	__memset((char*)process0->tss.intMap, 0, sizeof(process0->tss.intMap));
+	__memset((char*)process0->tss.iomap, 0, sizeof(process0->tss.iomap));
+	process0->tss.cr3 = PDE_ENTRY_VALUE;
 	process0->status = TASK_RUN;
 	process0->vaddr = KERNEL_DLL_BASE;
 	process0->vasize = 0;
@@ -213,7 +222,7 @@ int __createDosInFileTask(DWORD addr, char * filename) {
 	{
 		return 0;
 	}
-	return __kCreateProcess(addr,0x10000, filename, filename, INFILE_DOS_PROCESS_FLAG | 3, 0);
+	return __kCreateProcess(addr,0x10000, filename, filename, DOS_PROCESS_RUNCODE | 3, 0);
 }
 
 
@@ -380,8 +389,8 @@ int __resumePid(int pid) {
 }
 
 
-
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
+#ifndef SINGLE_TASK_TSS
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs) {
 
 	systimerProc();
 
@@ -503,7 +512,176 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO regs) {
 	return TRUE;
 }
 
+#else
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env) {
 
+	systimerProc();
+
+	// 	LPDOS_PE_CONTROL dos_status = (LPDOS_PE_CONTROL)V86_TASKCONTROL_ADDRESS;
+	// 	for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
+	// 	{
+	// 		if (dos_status[i].status == DOS_TASK_OVER)
+	// 		{
+	// 			LPPROCESS_INFO p = __findProcessByPid(dos_status[i].pid);
+	// 			if (p)
+	// 			{
+	// 				p->status = TASK_OVER;
+	// 				removeTaskList(dos_status[i].pid);
+	// 			}
+	// 		}
+	// 	}
+
+
+	TASK_LIST_ENTRY* prev = gTasksListPtr;
+
+	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+	do
+	{
+		if (next == 0 || next == prev)
+		{
+			return FALSE;
+		}
+
+		if (next->process->status != TASK_RUN)
+		{
+			next = (TASK_LIST_ENTRY*)next->list.next;
+			continue;
+		}
+
+		if (next->process->sleep)
+		{
+			next->process->sleep--;
+		}
+
+		if (next->process->sleep)
+		{
+			next = (TASK_LIST_ENTRY*)next->list.next;
+			continue;
+		}
+		else {
+			break;
+		}
+	} while (1);
+
+	gTasksListPtr = (TASK_LIST_ENTRY*)next;
+
+	if (prev->process->tid == gTasksListPtr->process->tid)
+	{
+		//return 0;
+	}
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+
+	process->tss.eax = env->eax;
+	process->tss.ecx = env->ecx;
+	process->tss.edx = env->edx;
+	process->tss.ebx = env->ebx;
+	process->tss.esp = env->esp;
+	process->tss.ebp = env->ebp;
+	process->tss.esi = env->esi;
+	process->tss.edi = env->edi;
+	process->tss.ss = env->ss;
+	process->tss.gs = env->gs;
+	process->tss.fs = env->fs;
+	process->tss.ds = env->ds;
+	process->tss.es = env->es;
+	DWORD dwcr3 = 0;
+	__asm {
+		mov eax,cr3
+		mov dwcr3,eax
+	}
+	process->tss.cr3 = dwcr3;
+
+	if ((env->cs & 3) || (env->eflags&0x23000)) {
+		process->espBak = env->esp;
+	}
+
+	// 	if (process->tss.link)
+	// 	{
+	// 		char szout[1024];
+	// 		__printf(szout, "tid:%d pid:%d link:%d\r\n", process->tid, process->pid, process->tss.link);
+	// 		__drawGraphChars((unsigned char*)szout, 0);
+	// 		process->tss.link = 0;
+	// 	}
+
+		//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
+	// 	DWORD nextcr3 = gTasksListPtr->process->tss.cr3;
+	// 	LPTSS timertss = (LPTSS)gAsmTsses;
+	// 	timertss->cr3 = nextcr3;
+	// 	short ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
+	// 	__asm {
+	// 		mov ax,ldt
+	// 		lldt ax
+	// 	}
+
+		//if (prev->process->status == TASK_RUN && process->status == TASK_RUN)
+	{
+		process->counter++;
+		__memcpy((char*)(tss + prev->process->tid), (char*)process, sizeof(PROCESS_INFO));
+	}
+
+	//if (gTasksListPtr->process->status == TASK_RUN)
+	{
+		__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
+	}
+
+	env->eax = process->tss.eax ;
+	env->ecx = process->tss.ecx ;
+	env->edx = process->tss.edx ;
+	env->ebx = process->tss.ebx ;
+	env->esp = process->tss.esp ;
+	env->ebp = process->tss.ebp ;
+	env->esi = process->tss.esi ;
+	env->edi = process->tss.edi ;
+	env->ss = process->tss.ss ;
+	env->gs = process->tss.gs ;
+	env->fs = process->tss.fs ;
+	env->ds = process->tss.ds ;
+	env->es = process->tss.es ;
+
+	dwcr3 = process->tss.cr3;
+	__asm {
+		mov eax, dwcr3
+		mov cr3, eax
+	}
+	if (process->level & 3) {
+		env->esp = process->espBak;
+	}
+
+	//tasktest();
+
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->process->tid << 9);
+	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
+	//The assembler issues two instructions for the FSAVE instruction (an FWAIT instruction followed by an FNSAVE instruction), 
+	//and the processor executes each of these instructions separately.
+	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
+	__asm {
+		clts			//before all fpu instructions
+		fwait
+		mov eax, fenvprev
+		FxSAVE[eax]
+		//fsave [fenv]
+		//FNCLEX
+	}
+	prev->process->tss.fpu = 1;
+
+	if (gTasksListPtr->process->tss.fpu)
+	{
+		char* fenvnext = (char*)FPU_STATUS_BUFFER + (gTasksListPtr->process->tid << 9);
+		__asm {
+			clts
+			fwait
+			finit
+			mov eax, fenvnext
+			//frstor [fenv]
+			fxrstor[eax]
+		}
+	}
+
+	return TRUE;
+}
+#endif
 
 
 void tasktest(TASK_LIST_ENTRY *gTasksListPtr, TASK_LIST_ENTRY*gPrevTasksPtr) {

@@ -6,13 +6,12 @@
 #include "mouse.h"
 #include "gdi/jpeg.h"
 
-#pragma comment(lib,"kernel.lib")
+#pragma comment(lib,"../release/kernel.lib")
 
 
 
 //https://wiki.osdev.org/
-//https://wiki.osdev.org/
-//https://wiki.osdev.org/
+
 
 
 

@@ -1,7 +1,7 @@
 #include "page.h"
 #include "Utils.h"
 #include "video.h"
-#include "slab.h"
+#include "malloc.h"
 #include "process.h"
 
 

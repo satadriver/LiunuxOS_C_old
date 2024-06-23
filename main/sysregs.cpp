@@ -4,7 +4,7 @@
 #include "Utils.h"
 #include "Kernel.h"
 #include "task.h"
-#include "slab.h"
+#include "malloc.h"
 
 
 int getcrs(char * szout) {

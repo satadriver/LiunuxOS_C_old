@@ -6,7 +6,7 @@
 #include "../satadriver.h"
 #include "../video.h"
 #include "FAT32Utils.h"
-#include "../slab.h"
+#include "../malloc.h"
 
 DWORD gFat32BusyFlag = 0;
 

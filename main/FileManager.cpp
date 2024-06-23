@@ -23,7 +23,7 @@
 #include "graph.h"
 #include "soundBlaster/sbPlay.h"
 #include "fat12/fat12.h"
-#include "slab.h"
+#include "malloc.h"
 #include "Thread.h"
 #include "WindowClass.h"
 

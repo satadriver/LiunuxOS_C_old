@@ -2,7 +2,7 @@
 #include "def.h"
 #include "descriptor.h"
 #include "page.h"
-#include "slab.h"
+#include "malloc.h"
 #include "video.h"
 
 #pragma pack(push,1)
@@ -66,6 +66,8 @@ typedef struct
 {
 	TSS tss;
 
+	DWORD espBak;
+
 	DWORD pid;
 
 	DWORD tid;
@@ -115,6 +117,26 @@ typedef struct
 	DWORD filesize;
 	char filename[256];
 }TASKCMDPARAMS, *LPTASKCMDPARAMS;
+
+typedef struct {
+	DWORD eip;
+	DWORD cs;
+	DWORD eflags; 
+}RETUTN_ADDRESS_0;
+
+typedef struct {
+	RETUTN_ADDRESS_0 ret0;
+	DWORD esp3;
+	DWORD ss3;
+}RETUTN_ADDRESS_3;
+
+typedef struct {
+	RETUTN_ADDRESS_3 ret3;
+	DWORD gs;
+	DWORD fs;
+	DWORD ds;
+	DWORD es;
+}RETUTN_ADDRESS_V86;
 
 typedef struct
 {

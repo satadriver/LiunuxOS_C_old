@@ -4,7 +4,7 @@
 #include "Utils.h"
 #include "peVirtual.h"
 #include "task.h"
-#include "slab.h"
+#include "malloc.h"
 
 
 

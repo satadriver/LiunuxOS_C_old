@@ -6,7 +6,7 @@
 #include "../file.h"
 #include "../UserUtils.h"
 #include "../def.h"
-#include "../slab.h"
+#include "../malloc.h"
 
 int gAtapiDev = -1;
 

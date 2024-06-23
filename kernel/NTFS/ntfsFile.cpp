@@ -5,7 +5,7 @@
 #include "../satadriver.h"
 #include "../file.h"
 #include "../video.h"
-#include "../slab.h"
+#include "../malloc.h"
 
 
 

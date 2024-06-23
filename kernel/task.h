@@ -16,10 +16,35 @@ typedef struct {
 	DWORD valid;
 }TASK_LIST_ENTRY;
 
+typedef struct {
+	DWORD ss;
+	DWORD gs;
+	DWORD fs;
+	DWORD es;
+	DWORD ds;
+	DWORD edi;
+	DWORD esi;
+	DWORD ebp;
+	DWORD esp;
+	DWORD ebx;
+	DWORD edx;
+	DWORD ecx;
+	DWORD eax;
+	DWORD eip;
+	DWORD cs;
+	DWORD eflags;
+	DWORD esp3;
+	DWORD ss3;
+	DWORD gs_v86;
+	DWORD fs_v86;
+	DWORD ds_v86;
+	DWORD es_v86;
+}LIGHT_ENVIRONMENT;
+
 #pragma pack()
 
 #define DOS_TASK_OVER			0X20000000
-#define INFILE_DOS_PROCESS_FLAG 0X80000000
+#define DOS_PROCESS_RUNCODE		0X80000000
 
 
 #define TASK_STATUS_PTR			0X80000000
@@ -45,7 +70,7 @@ int __getFreeTask(LPTASKRESULT);
 
 #ifdef DLL_EXPORT
 
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LPPROCESS_INFO);
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
 extern "C"  __declspec(dllexport) int __terminateTid(int tid);
 
@@ -68,7 +93,7 @@ extern "C"  __declspec(dllexport) int __createDosInFileTask(DWORD addr, char * f
 
 #else
 
-extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LPPROCESS_INFO);
+extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
 extern "C"  __declspec(dllimport) int __terminateTid(int tid);
 

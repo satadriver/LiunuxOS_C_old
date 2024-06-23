@@ -4,7 +4,7 @@
 #include "../video.h"
 #include "FileUtils.h"
 #include "Fat32File.h"
-#include "../slab.h"
+#include "../malloc.h"
 
 
 

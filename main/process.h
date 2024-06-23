@@ -2,7 +2,7 @@
 #include "def.h"
 #include "descriptor.h"
 #include "page.h"
-#include "slab.h"
+#include "malloc.h"
 #include "video.h"
 
 #pragma pack(push,1)

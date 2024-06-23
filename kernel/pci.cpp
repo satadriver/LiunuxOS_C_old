@@ -27,7 +27,7 @@ int getBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin) {
 
 				int baseregidx = (bdf & 0xffffff00) + 0x10;
 
-				for (int i = 0; i < 6; i++)
+				for (int i = 0; i < 4; i++)
 				{
 					outportd(0xcf8, baseregidx);
 					v = inportd(0xcfc);
@@ -78,21 +78,7 @@ int listpci(DWORD* dst) {
 }
 
 
-void showAllPciDevs() {
-	unsigned long devbuf[0x1000];
-	int cnt = listpci(devbuf);
-	if (cnt > 0)
-	{
-		for (int i = 0; i < cnt; )
-		{
-			char szout[1024];
-			__printf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
-			__drawGraphChars((unsigned char*)szout, 0);
 
-			i += 2;
-		}
-	}
-}
 
 int getNetcard(DWORD* regs, DWORD* dev, DWORD* irq) {
 	return getBasePort(regs, 0x0200, dev, irq);
@@ -114,6 +100,23 @@ int getUsb(DWORD* regs, DWORD* dev, DWORD* irq) {
 	return getBasePort(regs, 0x0c03, dev, irq);
 }
 
+
+
+void showAllPciDevs() {
+	unsigned long devbuf[0x1000];
+	int cnt = listpci(devbuf);
+	if (cnt > 0)
+	{
+		for (int i = 0; i < cnt; )
+		{
+			char szout[1024];
+			__printf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
+			__drawGraphChars((unsigned char*)szout, 0);
+
+			i += 2;
+		}
+	}
+}
 
 int showPciDevs() {
 

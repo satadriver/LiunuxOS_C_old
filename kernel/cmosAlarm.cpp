@@ -8,7 +8,7 @@
 #include "mouse.h"
 #include "task.h"
 #include "Pe.h"
-#include "slab.h"
+#include "malloc.h"
 #include "process.h"
 #include "Thread.h"
 #include "memory.h"

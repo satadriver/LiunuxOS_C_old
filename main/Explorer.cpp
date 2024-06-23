@@ -22,7 +22,7 @@
 #include "WindowClass.h"
 #include "Utils.h"
 #include "paint.h"
-#include "slab.h"
+#include "malloc.h"
 #include "Thread.h"
 #include "mouse.h"
 #include "pci.h"

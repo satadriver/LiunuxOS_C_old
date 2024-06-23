@@ -3,7 +3,7 @@
 #include "process.h"
 #include "Utils.h"
 #include "Pe.h"
-#include "slab.h"
+#include "malloc.h"
 #include "page.h"
 #include "video.h"
 #include "Utils.h"

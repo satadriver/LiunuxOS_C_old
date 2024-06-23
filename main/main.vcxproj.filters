@@ -57,7 +57,7 @@
     <ClCompile Include="machine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="FileManager.cpp">
+    <ClCompile Include="fileManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="NTFS\ntfsDirs.cpp">
@@ -75,31 +75,31 @@
     <ClCompile Include="console.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="UserUtils.cpp">
+    <ClCompile Include="userUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="fat12\fat12.cpp">
       <Filter>源文件\fat12</Filter>
     </ClCompile>
-    <ClCompile Include="WindowClass.cpp">
+    <ClCompile Include="windowClass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Menu.cpp">
+    <ClCompile Include="menu.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="paint.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TaskBar.cpp">
+    <ClCompile Include="taskBar.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Explorer.cpp">
+    <ClCompile Include="explorer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="graph.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="FileManagerWindow.cpp">
+    <ClCompile Include="fileManagerWindow.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,7 +113,7 @@
     <ClInclude Include="machine.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
+    <ClInclude Include="utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="atapi.h">
@@ -131,7 +131,7 @@
     <ClInclude Include="descriptor.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dosProcess.h">
+    <ClInclude Include="processDOS.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="file.h">
@@ -143,7 +143,7 @@
     <ClInclude Include="hardware.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Kernel.h">
+    <ClInclude Include="kernel.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="keyboard.h">
@@ -155,7 +155,7 @@
     <ClInclude Include="pci.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Pe.h">
+    <ClInclude Include="pe.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="rs232.h">
@@ -188,7 +188,7 @@
     <ClInclude Include="window.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="FileManager.h">
+    <ClInclude Include="fileManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="fat32\FAT32.h">
@@ -221,13 +221,13 @@
     <ClInclude Include="ios9660\ios9660.h">
       <Filter>头文件\iso9660</Filter>
     </ClInclude>
-    <ClInclude Include="UserUtils.h">
+    <ClInclude Include="userUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="fat12\fat12.h">
       <Filter>头文件\fat12</Filter>
     </ClInclude>
-    <ClInclude Include="WindowClass.h">
+    <ClInclude Include="windowClass.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="menu.h">
@@ -236,10 +236,10 @@
     <ClInclude Include="paint.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="slab.h">
+    <ClInclude Include="malloc.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="TaskBar.h">
+    <ClInclude Include="taskBar.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Explorer.h">
@@ -260,7 +260,7 @@
     <ClInclude Include="exception.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ListEntry.h">
+    <ClInclude Include="listEntry.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="math.h">
@@ -284,7 +284,7 @@
     <ClInclude Include="systemTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Thread.h">
+    <ClInclude Include="thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="graph.h">
@@ -293,7 +293,7 @@
     <ClInclude Include="gdi.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="FileManagerWindow.h">
+    <ClInclude Include="fileManagerWindow.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="elf.h">

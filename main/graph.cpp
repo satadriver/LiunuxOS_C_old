@@ -5,7 +5,7 @@
 #include "gdi/jpeg.h"
 #include "soundBlaster/sbPlay.h"
 #include "gdi.h"
-#include "slab.h"
+#include "malloc.h"
 
 int showTxtFile(char * filename) {
 

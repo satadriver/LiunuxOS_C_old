@@ -5,7 +5,7 @@
 #include "../video.h"
 #include "FAT32Utils.h"
 #include "FileUtils.h"
-#include "..\\slab.h"
+#include "..\\malloc.h"
 
 
 //取长文件名的前6个字符加上"~1"形成短文件名，扩展名不变

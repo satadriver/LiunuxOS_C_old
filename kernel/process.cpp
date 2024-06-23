@@ -5,11 +5,11 @@
 #include "task.h"
 #include "Pe.h"
 #include "file.h"
-#include "dosProcess.h"
+#include "processDOS.h"
 #include "pevirtual.h"
 #include "Kernel.h"
 #include "memory.h"
-#include "slab.h"
+#include "malloc.h"
 #include "page.h"
 #include "ListEntry.h"
 #include "window.h"
@@ -221,8 +221,18 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		}
 
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE  - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
+
+#ifdef SINGLE_TASK_TSS
+		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
+		ret0->cs = tss->tss.cs;
+		ret0->eip = tss->tss.eip;
+		ret0->eflags = tss->tss.eflags;
+		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+#else
 		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#endif
 
 		heapsize = KTASK_STACK_SIZE;
 	}
@@ -251,8 +261,21 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		}
 
 		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
+
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+
+#ifdef SINGLE_TASK_TSS
+		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
+		ret3->ret0.cs = tss->tss.cs;
+		ret3->ret0.eip = tss->tss.eip;
+		ret3->ret0.eflags = tss->tss.eflags;
+		ret3->esp3 = (DWORD)tss->tss.esp;
+		ret3->ss3 = tss->tss.ss;
+
+		tss->espBak = (DWORD)ret3;
+#else
+#endif
 
 		heapsize = UTASK_STACK_SIZE;
 	}
@@ -373,7 +396,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 		return FALSE;
 	}
 
-	if (mode & INFILE_DOS_PROCESS_FLAG)
+	if (mode & DOS_PROCESS_RUNCODE)
 	{
 		ret = __initDosTss(result.lptss, result.number, filedata, filename, funcname, mode + (level | 3), params);
 		return ret;

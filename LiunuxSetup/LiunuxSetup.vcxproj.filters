@@ -18,24 +18,24 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="FileOper.cpp">
+    <ClCompile Include="fileOper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="osWriter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SectorRW.cpp">
+    <ClCompile Include="sectorRW.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FileOper.h">
+    <ClInclude Include="fileOper.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="osWriter.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SectorRW.h">
+    <ClInclude Include="sectorRW.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="main.h">

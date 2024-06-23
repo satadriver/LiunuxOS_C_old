@@ -6,7 +6,7 @@
 #include "keyboard.h"
 #include "mouse.h"
 #include "gdi.h"
-#include "slab.h"
+#include "malloc.h"
 #include "page.h"
 
 int gCircleX = 0;

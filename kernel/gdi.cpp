@@ -3,7 +3,7 @@
 #include "Utils.h"
 #include "math.h"
 #include "file.h"
-#include "slab.h"
+#include "malloc.h"
 #include "cmosTimer.h"
 #include "video.h"
 

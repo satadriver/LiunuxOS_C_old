@@ -22,13 +22,13 @@
     <ProjectGuid>{E0DDE108-F465-442D-A8CE-F02E6B0D2242}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LiunuxSetup</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -41,7 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -149,16 +149,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FileOper.cpp" />
+    <ClCompile Include="fileOper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="osWriter.cpp" />
-    <ClCompile Include="SectorRW.cpp" />
+    <ClCompile Include="sectorRW.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FileOper.h" />
+    <ClInclude Include="fileOper.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="osWriter.h" />
-    <ClInclude Include="SectorRW.h" />
+    <ClInclude Include="sectorRW.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,13 +22,13 @@
     <ProjectGuid>{E49EDBED-49A9-4C0E-B435-26759D691389}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>main</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -41,7 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -72,16 +72,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.exe</TargetExt>
+    <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>../kernel/;$(IncludePath)</IncludePath>
+    <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,23 +160,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console.cpp" />
-    <ClCompile Include="Explorer.cpp" />
+    <ClCompile Include="explorer.cpp" />
     <ClCompile Include="fat12\fat12.cpp" />
     <ClCompile Include="fat32\fat32dirs.cpp" />
-    <ClCompile Include="FileManager.cpp" />
-    <ClCompile Include="FileManagerWindow.cpp" />
+    <ClCompile Include="fileManager.cpp" />
+    <ClCompile Include="fileManagerWindow.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="gdi\jpeg.cpp" />
     <ClCompile Include="ios9660\ios9660.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="menu.cpp" />
     <ClCompile Include="NTFS\ntfsDirs.cpp" />
     <ClCompile Include="paint.cpp" />
-    <ClCompile Include="TaskBar.cpp" />
-    <ClCompile Include="WindowClass.cpp" />
+    <ClCompile Include="taskBar.cpp" />
+    <ClCompile Include="windowClass.cpp" />
     <ClCompile Include="sysregs.cpp" />
-    <ClCompile Include="UserUtils.cpp" />
+    <ClCompile Include="userUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atapi.h" />
@@ -183,12 +187,12 @@
     <ClInclude Include="debugger.h" />
     <ClInclude Include="def.h" />
     <ClInclude Include="descriptor.h" />
-    <ClInclude Include="dosProcess.h" />
+    <ClInclude Include="processDOS.h" />
     <ClInclude Include="elf.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="Explorer.h" />
     <ClInclude Include="gdi.h" />
-    <ClInclude Include="ListEntry.h" />
+    <ClInclude Include="listEntry.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="menu.h" />
@@ -199,24 +203,24 @@
     <ClInclude Include="fat32\FAT32Utils.h" />
     <ClInclude Include="fat32\FileUtils.h" />
     <ClInclude Include="file.h" />
-    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="fileManager.h" />
     <ClInclude Include="floppy.h" />
-    <ClInclude Include="FileManagerWindow.h" />
+    <ClInclude Include="fileManagerWindow.h" />
     <ClInclude Include="ios9660\ios9660.h" />
     <ClInclude Include="page.h" />
     <ClInclude Include="paint.h" />
     <ClInclude Include="peVirtual.h" />
     <ClInclude Include="servicesProc.h" />
-    <ClInclude Include="slab.h" />
+    <ClInclude Include="malloc.h" />
     <ClInclude Include="speaker.h" />
     <ClInclude Include="systemTimer.h" />
-    <ClInclude Include="TaskBar.h" />
-    <ClInclude Include="Thread.h" />
-    <ClInclude Include="WindowClass.h" />
+    <ClInclude Include="taskBar.h" />
+    <ClInclude Include="thread.h" />
+    <ClInclude Include="windowClass.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="gdi\jpeg.h" />
     <ClInclude Include="hardware.h" />
-    <ClInclude Include="Kernel.h" />
+    <ClInclude Include="kernel.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="main.h" />
@@ -225,7 +229,7 @@
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="NTFS\ntfsFile.h" />
     <ClInclude Include="pci.h" />
-    <ClInclude Include="Pe.h" />
+    <ClInclude Include="pe.h" />
     <ClInclude Include="rs232.h" />
     <ClInclude Include="satadriver.h" />
     <ClInclude Include="screenUtils.h" />
@@ -235,8 +239,8 @@
     <ClInclude Include="system.h" />
     <ClInclude Include="task.h" />
     <ClInclude Include="process.h" />
-    <ClInclude Include="UserUtils.h" />
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="userUtils.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="v86.h" />
     <ClInclude Include="video.h" />
     <ClInclude Include="window.h" />

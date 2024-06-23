@@ -3,7 +3,7 @@
 #include "video.h"
 #include "FileManagerWindow.h"
 #include "window.h"
-#include "slab.h"
+#include "malloc.h"
 #include "task.h"
 #include "Utils.h"
 

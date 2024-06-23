@@ -6,7 +6,7 @@
 #include "screenUtils.h"
 #include "console.h"
 #include "paint.h"
-#include "slab.h"
+#include "malloc.h"
 #include "cmosAlarm.h"
 #include "process.h"
 #include "atapi.h"
