@@ -113,79 +113,10 @@
     <ClInclude Include="machine.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="atapi.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cmosAlarm.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="console.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="debugger.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="descriptor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="processDOS.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="file.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="floppy.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="hardware.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="kernel.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="keyboard.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mouse.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="pci.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="pe.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rs232.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="satadriver.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="screenUtils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="sectorReader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="sysregs.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="system.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="task.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="v86.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="video.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="window.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="fileManager.h">
@@ -236,67 +167,16 @@
     <ClInclude Include="paint.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="malloc.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="taskBar.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Explorer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="def.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="process.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cmosTimer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="coprocessor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="exception.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="listEntry.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="math.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="memory.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="page.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="peVirtual.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="servicesProc.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="speaker.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="systemTimer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="graph.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gdi.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="fileManagerWindow.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="elf.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

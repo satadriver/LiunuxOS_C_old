@@ -593,6 +593,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	}
 	process->tss.cr3 = dwcr3;
 
+
 	if ((env->cs & 3) || (env->eflags&0x23000)) {
 		process->espBak = env->esp;
 	}
@@ -647,6 +648,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	}
 	if (process->level & 3) {
 		env->esp = process->espBak;
+
 	}
 
 	//tasktest();

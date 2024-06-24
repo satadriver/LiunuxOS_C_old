@@ -240,7 +240,7 @@ DWORD linear2phy(DWORD linearAddr,int pid) {
 		DWORD * tablepage = (DWORD *)(cr3[tboffset] & PAGE_MASK);
 		if (tablepage[pgoffset] & 1)
 		{
-			DWORD offsetInPage = linearAddr & PAGE_IN_MASK;
+			DWORD offsetInPage = linearAddr & PAGE_INSIZE_MASK;
 			DWORD addr = (tablepage[pgoffset] & PAGE_MASK) + offsetInPage;
 
 			return addr;
@@ -265,7 +265,7 @@ DWORD linear2phy(DWORD linearAddr) {
 		DWORD * tablepage = (DWORD *)(cr3[tboffset] & PAGE_MASK);
 		if (tablepage[pgoffset] & 1)
 		{
-			DWORD offsetInPage = linearAddr & PAGE_IN_MASK;
+			DWORD offsetInPage = linearAddr & PAGE_INSIZE_MASK;
 			DWORD addr = (tablepage[pgoffset] & PAGE_MASK) + offsetInPage;
 
 			return addr;
@@ -290,7 +290,7 @@ DWORD checkPhysicalAddrExist(DWORD linearAddr) {
 		DWORD * tablepage = (DWORD *)(cr3[tboffset] & PAGE_MASK);
 		if (tablepage[pgoffset] & 1)
 		{
-			DWORD offsetInPage = linearAddr & PAGE_IN_MASK;
+			DWORD offsetInPage = linearAddr & PAGE_INSIZE_MASK;
 			DWORD addr = (tablepage[pgoffset] & PAGE_MASK) + offsetInPage;
 
 			return addr;

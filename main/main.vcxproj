@@ -73,19 +73,26 @@
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.exe</TargetExt>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../kernel/;$(IncludePath)</IncludePath>
+    <IncludePath>../kernel;../kernel/def.h;../kernel/;$(IncludePath)</IncludePath>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
+    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -179,22 +186,8 @@
     <ClCompile Include="userUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="atapi.h" />
-    <ClInclude Include="cmosAlarm.h" />
-    <ClInclude Include="cmosTimer.h" />
     <ClInclude Include="console.h" />
-    <ClInclude Include="coprocessor.h" />
-    <ClInclude Include="debugger.h" />
-    <ClInclude Include="def.h" />
-    <ClInclude Include="descriptor.h" />
-    <ClInclude Include="processDOS.h" />
-    <ClInclude Include="elf.h" />
-    <ClInclude Include="exception.h" />
     <ClInclude Include="Explorer.h" />
-    <ClInclude Include="gdi.h" />
-    <ClInclude Include="listEntry.h" />
-    <ClInclude Include="math.h" />
-    <ClInclude Include="memory.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="fat12\fat12.h" />
     <ClInclude Include="fat32\FAT32.h" />
@@ -202,48 +195,22 @@
     <ClInclude Include="fat32\Fat32File.h" />
     <ClInclude Include="fat32\FAT32Utils.h" />
     <ClInclude Include="fat32\FileUtils.h" />
-    <ClInclude Include="file.h" />
     <ClInclude Include="fileManager.h" />
-    <ClInclude Include="floppy.h" />
     <ClInclude Include="fileManagerWindow.h" />
     <ClInclude Include="ios9660\ios9660.h" />
-    <ClInclude Include="page.h" />
     <ClInclude Include="paint.h" />
-    <ClInclude Include="peVirtual.h" />
-    <ClInclude Include="servicesProc.h" />
-    <ClInclude Include="malloc.h" />
-    <ClInclude Include="speaker.h" />
-    <ClInclude Include="systemTimer.h" />
     <ClInclude Include="taskBar.h" />
-    <ClInclude Include="thread.h" />
     <ClInclude Include="windowClass.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="gdi\jpeg.h" />
-    <ClInclude Include="hardware.h" />
-    <ClInclude Include="kernel.h" />
-    <ClInclude Include="keyboard.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="mouse.h" />
     <ClInclude Include="NTFS\ntfs.h" />
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="NTFS\ntfsFile.h" />
-    <ClInclude Include="pci.h" />
-    <ClInclude Include="pe.h" />
-    <ClInclude Include="rs232.h" />
-    <ClInclude Include="satadriver.h" />
-    <ClInclude Include="screenUtils.h" />
-    <ClInclude Include="sectorReader.h" />
     <ClInclude Include="soundBlaster\sbPlay.h" />
     <ClInclude Include="sysregs.h" />
-    <ClInclude Include="system.h" />
-    <ClInclude Include="task.h" />
-    <ClInclude Include="process.h" />
     <ClInclude Include="userUtils.h" />
-    <ClInclude Include="utils.h" />
-    <ClInclude Include="v86.h" />
-    <ClInclude Include="video.h" />
-    <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="main.rc" />
