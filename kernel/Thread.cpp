@@ -151,7 +151,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		ret3->esp3 = (DWORD)tss->tss.esp;
 		ret3->ss3 = tss->tss.ss;
 
-		tss->espBak = (DWORD)ret3;
+		tss->tss.esp = (DWORD)ret3;
+		tss->tss.ebp = (DWORD)ret3;
+		tss->tss.ss = KERNEL_MODE_STACK;
 #else
 #endif
 	}

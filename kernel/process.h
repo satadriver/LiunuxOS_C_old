@@ -66,8 +66,6 @@ typedef struct
 {
 	TSS tss;
 
-	DWORD espBak;
-
 	DWORD pid;
 
 	DWORD tid;

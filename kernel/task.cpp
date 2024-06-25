@@ -122,12 +122,8 @@ int __initTask() {
 	process0->tss.esp0 = TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	process0->tss.iomapOffset = 136;
 	process0->tss.iomapEnd = 0xff; 
-	__asm {
-		mov ax,cs
-		movzx eax,ax
-		//mov process0.tss.ss0,eax
-	}
-	//process0->tss.ss0 = 0x10;
+	process0->tss.ss0 = KERNEL_MODE_STACK;
+
 	__memset((char*)process0->tss.intMap, 0, sizeof(process0->tss.intMap));
 	__memset((char*)process0->tss.iomap, 0, sizeof(process0->tss.iomap));
 	process0->tss.cr3 = PDE_ENTRY_VALUE;
@@ -135,8 +131,6 @@ int __initTask() {
 	process0->vaddr = KERNEL_DLL_BASE;
 	process0->vasize = 0;
 	process0->espbase = KERNEL_TASK_STACK_BASE;
-	//process0->tss.esp0 = TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
-	//process0->tss.ss0 = KERNEL_MODE_STACK;
 
 	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
 
@@ -593,9 +587,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	}
 	process->tss.cr3 = dwcr3;
 
+	if ((env->cs & 3) || (env->eflags & 0x20000)) {
 
-	if ((env->cs & 3) || (env->eflags&0x23000)) {
-		process->espBak = env->esp;
 	}
 
 	// 	if (process->tss.link)
@@ -635,19 +628,25 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->ebp = process->tss.ebp ;
 	env->esi = process->tss.esi ;
 	env->edi = process->tss.edi ;
-	env->ss = process->tss.ss ;
-	env->gs = process->tss.gs ;
-	env->fs = process->tss.fs ;
-	env->ds = process->tss.ds ;
-	env->es = process->tss.es ;
-
+	env->gs = process->tss.gs;
+	env->fs = process->tss.fs;
+	env->ds = process->tss.ds;
+	env->es = process->tss.es;
+	env->ss = process->tss.ss;
+	
 	dwcr3 = process->tss.cr3;
 	__asm {
 		mov eax, dwcr3
 		mov cr3, eax
 	}
-	if (process->level & 3) {
-		env->esp = process->espBak;
+
+	if (process->tss.eflags & 0x20000) {
+
+	}
+	else if (process->tss.cs & 3) {
+		//env->ss = KERNEL_MODE_STACK;
+	}
+	else {
 
 	}
 

@@ -216,7 +216,14 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	retv86->es = tss->tss.es;
 	retv86->fs = tss->tss.fs;
 	retv86->gs = tss->tss.gs;
-	tss->espBak = (DWORD)retv86;
+
+	tss->tss.ds = KERNEL_MODE_STACK;
+	tss->tss.es = KERNEL_MODE_STACK;
+	tss->tss.fs = KERNEL_MODE_STACK;
+	tss->tss.gs = KERNEL_MODE_STACK;
+
+	tss->tss.esp = (DWORD)retv86;
+	tss->tss.ss = KERNEL_MODE_STACK;
 #else
 #endif
 

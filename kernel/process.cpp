@@ -237,12 +237,12 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		heapsize = KTASK_STACK_SIZE;
 	}
 	else {
-		tss->tss.ds = USER_MODE_DATA | syslevel | 4;
-		tss->tss.es = USER_MODE_DATA | syslevel | 4;
-		tss->tss.fs = USER_MODE_DATA | syslevel | 4;
-		tss->tss.gs = USER_MODE_DATA | syslevel | 4;
-		tss->tss.cs = USER_MODE_CODE | syslevel | 4;
-		tss->tss.ss = USER_MODE_STACK | syslevel | 4;
+		tss->tss.ds = USER_MODE_DATA | syslevel ;
+		tss->tss.es = USER_MODE_DATA | syslevel;
+		tss->tss.fs = USER_MODE_DATA | syslevel ;
+		tss->tss.gs = USER_MODE_DATA | syslevel ;
+		tss->tss.cs = USER_MODE_CODE | syslevel ;
+		tss->tss.ss = USER_MODE_STACK | syslevel ;
 
 		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize,pid, vaddr);
 		if (tss->espbase == FALSE)
@@ -273,7 +273,9 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		ret3->esp3 = (DWORD)tss->tss.esp;
 		ret3->ss3 = tss->tss.ss;
 
-		tss->espBak = (DWORD)ret3;
+		tss->tss.esp = (DWORD)ret3;
+		tss->tss.ebp = (DWORD)ret3;
+		tss->tss.ss = KERNEL_MODE_STACK;
 #else
 #endif
 

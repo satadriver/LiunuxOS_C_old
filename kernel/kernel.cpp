@@ -46,7 +46,7 @@ DWORD gV86VMLeave = 0;
 DWORD gKernel16;
 DWORD gKernel32;
 DWORD gKernelData;
-DWORD gAsmTsses;
+//DWORD gAsmTsses;
 
 
 
@@ -84,7 +84,7 @@ void getGdtIdt() {
 
 
 //c++函数的导出函数对应函数声明的顺序，而不是函数体，函数体的参数一一对应于声明中的顺序
-int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86Leave ,DWORD kerneldata,DWORD kernel16,DWORD kernel32,DWORD lpasmTsses) {
+int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86Leave ,DWORD kerneldata,DWORD kernel16,DWORD kernel32) {
 
 	int ret = 0;
 	
@@ -93,7 +93,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86
 	gKernelData = kerneldata;
 	gKernel16 = kernel16;
 	gKernel32 = kernel32;
-	gAsmTsses = lpasmTsses;
+	//gAsmTsses = lpasmTsses;
 
 	//must be first to prepare for showing
 	__getVideoParams(vesa, fontbase);

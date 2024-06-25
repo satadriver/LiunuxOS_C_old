@@ -28,7 +28,7 @@ extern "C" __declspec(dllexport)  DWORD gAsmTsses;
 extern "C" __declspec(dllexport) void __kKernelMain(DWORD retaddr, int pid, char * pname,char * funcname,DWORD param);
 
 extern "C" __declspec(dllexport) int __kernelEntry( LPVESAINFORMATION vesa, DWORD fontbase, 
-	DWORD v86Proc, DWORD v86Leave,DWORD kerneldata, DWORD kernel16, DWORD kernel32, DWORD lpasmTsses);
+	DWORD v86Proc, DWORD v86Leave,DWORD kerneldata, DWORD kernel16, DWORD kernel32);
 #else
 extern "C" __declspec(dllimport)  LPSYSDESCRIPTOR glpCallGate;
 extern "C" __declspec(dllimport)  LPSEGDESCRIPTOR glpLdt;
@@ -48,7 +48,7 @@ extern "C" __declspec(dllimport) void __kKernelMain(DWORD retaddr, int pid, char
 
 
 extern "C" __declspec(dllimport) int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86Proc, DWORD v86Leave,
-	DWORD kerneldata, DWORD kernel16, DWORD kernel32, DWORD lpasmTsses);
+	DWORD kerneldata, DWORD kernel16, DWORD kernel32);
 #endif
 
 
