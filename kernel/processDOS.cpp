@@ -202,7 +202,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		//*(WORD*)(tss->tss.esp + addr) = 0;
 
 		__printf(szout, "__kCreateTask dos com file:%s\r\n\r\n", filename);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 #ifdef SINGLE_TASK_TSS

@@ -151,7 +151,7 @@ extern "C"  __declspec(dllexport) int __kFreePage(DWORD addr) {
 
 	char szout[1024];
 	int len = __printf(szout, "__kFreePage not found address:%x\n", addr);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return FALSE;
 }
 

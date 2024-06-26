@@ -207,7 +207,7 @@ void readmsr(DWORD no, DWORD *lowpart, DWORD * highpart) {
 
 	char szout[1024];
 	__printf(szout, "msr:%x,high:%x,low:%x\r\n", no, *highpart, *lowpart);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 }
 
 void writemsr(DWORD no, DWORD lowpart, DWORD highpart) {
@@ -285,7 +285,7 @@ void sysenterProc(DWORD * params, DWORD paramslen) {
 	}
 	char szout[1024];
 	__printf(szout, "sysenterProc current cs:%x,tss cs:%x,ss:%x,esp:%x\r\n", rcs, tss->cs, rss, resp);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 }
 
 //only be invoked in ring3,in ring0 will cause exception 0dh

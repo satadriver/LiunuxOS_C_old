@@ -59,7 +59,7 @@ int __readTemperature(DWORD * tjunction) {
 
 	char szout[1024];
 	__printf(szout, "tjmax:%x,temprature:%x\r\n", Tjunction,temp);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 
 	return temp;
 }

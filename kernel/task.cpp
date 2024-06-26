@@ -418,19 +418,17 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs)
 			next = (TASK_LIST_ENTRY*)next->list.next;
 			continue;
 		}
-
-		if (next->process->sleep)
-		{
-			next->process->sleep--;
-		}
-
-		if (next->process->sleep)
-		{
-			next = (TASK_LIST_ENTRY*)next->list.next;
-			continue;
-		}
 		else {
-			break;
+			if (next->process->sleep)
+			{
+				next->process->sleep--;
+
+				next = (TASK_LIST_ENTRY*)next->list.next;
+				continue;
+			}
+			else {
+				break;
+			}
 		}
 	} while (1);
 	
@@ -541,19 +539,17 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 			next = (TASK_LIST_ENTRY*)next->list.next;
 			continue;
 		}
-
-		if (next->process->sleep)
-		{
-			next->process->sleep--;
-		}
-
-		if (next->process->sleep)
-		{
-			next = (TASK_LIST_ENTRY*)next->list.next;
-			continue;
-		}
 		else {
-			break;
+			if (next->process->sleep)
+			{
+				next->process->sleep--;
+
+				next = (TASK_LIST_ENTRY*)next->list.next;
+				continue;
+			}
+			else {
+				break;
+			}
 		}
 	} while (1);
 
@@ -587,8 +583,12 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	}
 	process->tss.cr3 = dwcr3;
 
-	if ((env->cs & 3) || (env->eflags & 0x20000)) {
-
+	if (env->eflags & 0x20000) {
+		process->tss.gs = KERNEL_MODE_DATA;
+		process->tss.fs = KERNEL_MODE_DATA;
+		process->tss.ds = KERNEL_MODE_DATA;
+		process->tss.es = KERNEL_MODE_DATA;
+		process->tss.ss = KERNEL_MODE_DATA;
 	}
 
 	// 	if (process->tss.link)
@@ -618,26 +618,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	//if (gTasksListPtr->process->status == TASK_RUN)
 	{
 		__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
-	}
-
-	env->eax = process->tss.eax ;
-	env->ecx = process->tss.ecx ;
-	env->edx = process->tss.edx ;
-	env->ebx = process->tss.ebx ;
-	env->esp = process->tss.esp ;
-	env->ebp = process->tss.ebp ;
-	env->esi = process->tss.esi ;
-	env->edi = process->tss.edi ;
-	env->gs = process->tss.gs;
-	env->fs = process->tss.fs;
-	env->ds = process->tss.ds;
-	env->es = process->tss.es;
-	env->ss = process->tss.ss;
-	
-	dwcr3 = process->tss.cr3;
-	__asm {
-		mov eax, dwcr3
-		mov cr3, eax
 	}
 
 	if (process->tss.eflags & 0x20000) {
@@ -678,6 +658,26 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 			//frstor [fenv]
 			fxrstor[eax]
 		}
+	}
+
+	env->eax = process->tss.eax;
+	env->ecx = process->tss.ecx;
+	env->edx = process->tss.edx;
+	env->ebx = process->tss.ebx;
+	env->esp = process->tss.esp;
+	env->ebp = process->tss.ebp;
+	env->esi = process->tss.esi;
+	env->edi = process->tss.edi;
+	env->gs = process->tss.gs;
+	env->fs = process->tss.fs;
+	env->ds = process->tss.ds;
+	env->es = process->tss.es;
+	env->ss = process->tss.ss;
+
+	dwcr3 = process->tss.cr3;
+	__asm {
+		mov eax, dwcr3
+		mov cr3, eax
 	}
 
 	return TRUE;

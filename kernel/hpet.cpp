@@ -76,7 +76,7 @@ DWORD getRCBA() {
 
 		char szout[1024];
 		__printf(szout, "RCBA:%x\n", v);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 	return 0;
@@ -97,7 +97,7 @@ DWORD enableIRQ13() {
 
 		char szout[1024];
 		__printf(szout, "OIC:%x\n", v);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 	return 0;
@@ -238,7 +238,6 @@ static int parseRSDP(u8 *rsdp)
 	u8 version = rsdp[15];
 
 	__printf(szout,"ACPI rsdp:%x,OEM:%s,version:%u",rsdp, oem,version);
-	__drawGraphChars((unsigned char*)szout, 0);
 	
 	if (version == 0)
 	{

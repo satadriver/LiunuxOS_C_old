@@ -24,7 +24,7 @@ void mousetest() {
 	{
 		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel + (gVideoWidth/2)*gBytesPerPixel;
 
-		__printf(szout, "mouse x:%x,mouse y:%x,status:%x\n", mouseinfo.x,mouseinfo.y,mouseinfo.status);
+		__sprintf(szout, "mouse x:%x,mouse y:%x,status:%x\n", mouseinfo.x,mouseinfo.y,mouseinfo.status);
 		__drawGraphChar((unsigned char*)szout, 0, pos, TASKBARCOLOR);
 	}
 }
@@ -325,7 +325,7 @@ void __initMouse(int x,int y) {
 
 	char szout[1024];
 	__printf(szout, "mouse packet size:%d\n", gMousePackSize);
-	__drawGraphChars((unsigned char*)szout,  0);
+
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->mouseX = x/2;

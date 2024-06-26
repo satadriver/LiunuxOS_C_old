@@ -129,7 +129,7 @@ void __kException(DWORD param) {
 		LPPROCESS_INFO taskinfo = list->process;
 		if (taskinfo)
 		{
-			__printf(showinfo, "task pid:%d,level:%d,status:%x,counter:%d,entry:%x,delay:%d,function:%s,file:%s\n",
+			__sprintf(showinfo, "task pid:%d,level:%d,status:%x,counter:%d,entry:%x,delay:%d,function:%s,file:%s\n",
 				taskinfo->tid, taskinfo->level, taskinfo->status,taskinfo->counter, taskinfo->moduleaddr,0, taskinfo->funcname, taskinfo->filename);
 			__logShow((unsigned char*)showinfo, EXCEPTION_TIPS_COLOR);
 		}

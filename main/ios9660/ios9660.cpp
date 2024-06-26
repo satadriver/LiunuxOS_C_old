@@ -88,7 +88,7 @@ int browseISO9660File(LPFILEBROWSER files) {
 		}
 		else {
 			__printf(szout, "find atapi device:%x\n", gAtapiDev);
-			__drawGraphChars((unsigned char*)szout, 0);
+
 		}
 	}
 

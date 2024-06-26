@@ -123,6 +123,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86
 		sti
 	}
 
+	__printf(szout, "Hello world of Liunux!\r\n");
+
 	__createDosInFileTask(gV86VMIEntry, "V86VMIEntry");
 
 // 	TASKCMDPARAMS cmd;
@@ -144,16 +146,13 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86
 	//must be after running V86VMIEntry and sti
 	initFileSystem();
 
-	__sprintf(szout, "Hello world of Liunux!\r\n");
-
 	initDebugger();
 
 // 	floppyInit();
 // 	FloppyReadSector(0, 1, (unsigned char*)FLOPPY_DMA_BUFFER);
 
 // 	ret = loadLibRunFun("c:\\liunux\\main.dll", "__kMainProcess");
-// 	__printf(szout, "__kMainProcess result:%x\n", ret);
-// 	__drawGraphChars((unsigned char*)szout, 0);
+ 	__printf(szout, "__kMainProcess result:%x\n", ret);
 
 	__kCreateProcessFromAddrFunc(VSMAINDLL_LOAD_ADDRESS, 0x100000,  "__kExplorer", 3, 0);
 
@@ -180,7 +179,6 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
  	char szout[1024];
 	__printf(szout, "__kKernelMain task pid:%x,filename:%s,function name:%s\n", pid, filename,funcname);
-	__drawGraphChars((unsigned char*)szout, 0);
 
 // 	unsigned char sendbuf[1024];
 // 	//最大不能超过14字节

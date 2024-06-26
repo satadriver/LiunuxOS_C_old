@@ -99,7 +99,7 @@ void __kCmosTimer() {
 		fontcolor = CMOS_TIMESTAMP_THIRD_COLOR;
 	}
 
-	__printf(szout,fmt , &strc, &stry, &strm, &strd, strdw, &strhour, &strminute, &strsecond);
+	__sprintf(szout,fmt , &strc, &stry, &strm, &strd, strdw, &strhour, &strminute, &strsecond);
 	__strcpy((char*)CMOS_DATETIME_STRING, szout);
 
 	DWORD * lptickcnt = (DWORD*)CMOS_SECONDS_TOTAL;

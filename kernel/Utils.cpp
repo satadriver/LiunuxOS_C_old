@@ -308,7 +308,7 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 
 	char szlineno[16];
 	__memset(szlineno, 0x20, 16);
-	int lnl =__printf(szlineno, "%d.", lineno);
+	int lnl =__sprintf(szlineno, "%d.", lineno);
 	//*(szlineno + lnl) = 0x20;
 	//__strcpy((char*)dst, szlineno);
 	//dst += lnl;
@@ -332,7 +332,7 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 			lineno++;
 
 			__memset(szlineno, 0x20, 16);
-			lnl = __printf(szlineno, "%d.", lineno);
+			lnl = __sprintf(szlineno, "%d.", lineno);
 			//*(szlineno + lnl) = 0x20;
 			//__strcpy((char*)dst, szlineno);
 			//dst += lnl;
@@ -555,7 +555,7 @@ int __strd2i(char * istr) {
 
 
 
-int __sprintf(char * buf, char * format, ...) {
+int __printf(char * buf, char * format, ...) {
 	int seq = 0;
 	int len = 0;
 
@@ -673,7 +673,7 @@ int __sprintf(char * buf, char * format, ...) {
 }
 
 
-int __printf(char * buf, char * format,...) {
+int __sprintf(char * buf, char * format,...) {
 	int seq = 0;
 	 
 	int len = 0;

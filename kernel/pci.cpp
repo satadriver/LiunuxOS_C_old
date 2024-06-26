@@ -111,7 +111,7 @@ void showAllPciDevs() {
 		{
 			char szout[1024];
 			__printf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
-			__drawGraphChars((unsigned char*)szout, 0);
+
 
 			i += 2;
 		}
@@ -136,7 +136,7 @@ int showPciDevs() {
 		__printf(szout, "vesa int10h videoBase:%x,svga regs:%x,%x,%x,%x,%x,%x,dev:%x,irq:%x\n", gGraphBase,
 			svgaregs[0], svgaregs[1], svgaregs[2], svgaregs[3], svgaregs[4], svgaregs[5],
 			svgadev, svgairq);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 
@@ -148,7 +148,7 @@ int showPciDevs() {
 	{
 		__printf(szout, "usb regs:%x,%x,%x,%x,%x,%x,dev:%x,irq:%x\n", usbregs[0], usbregs[1], usbregs[2], usbregs[3], usbregs[4], usbregs[5],
 			usbdev, usbirq);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 
@@ -160,7 +160,7 @@ int showPciDevs() {
 	{
 		__printf(szout, "netcard regs:%x,%x,%x,%x,%x,%x,dev:%x,irq:%x\n", netregs[0], netregs[1], netregs[2], netregs[3], netregs[4], netregs[5],
 			netdev, netirq);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 
@@ -172,7 +172,7 @@ int showPciDevs() {
 	{
 		__printf(szout, "smbus regs:%x,%x,%x,%x,%x,%x,dev:%x,irq:%x\n", smbusregs[0], smbusregs[1], smbusregs[2], smbusregs[3], smbusregs[4], smbusregs[5],
 			smbusdev, smbusirq);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 
@@ -184,7 +184,7 @@ int showPciDevs() {
 	{
 		__printf(szout, "sound card regs:%x,%x,%x,%x,%x,%x,dev:%x,irq:%x\n", soundregs[0], soundregs[1], soundregs[2], soundregs[3], soundregs[4], soundregs[5],
 			sounddev, soundirq);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 	return 0;
 }

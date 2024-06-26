@@ -108,8 +108,8 @@ int initMemory() {
 				
 				gAllocLimitSize = pageAlignmentSize(gAllocLimitSize, 0);
 
-				int len = __printf(szout, "available memory address:%x,size:%x,alloc max size:%x\n",gAvailableBase,gAvailableSize, gAllocLimitSize);
-				__drawGraphChars((unsigned char*)szout, 0);
+				int len = __printf(szout, "available memory address:%x,size:%x,alloc max size:%x\n",
+					gAvailableBase,gAvailableSize, gAllocLimitSize);
 			}
 		}
 
@@ -324,7 +324,7 @@ DWORD __malloc(DWORD s) {
 	}
 
 	int len = __printf(szout, "__malloc size:%x error\n", size);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return FALSE;
 }
 
@@ -352,7 +352,7 @@ int __kFree(DWORD physicalAddr) {
 
 	char szout[1024];
 	int len = __printf(szout, "__kFree not found physical address:%x\n", physicalAddr);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return FALSE;
 }
 
@@ -392,7 +392,7 @@ int __free(DWORD linearAddr) {
 
 	char szout[1024];
 	int len = __printf(szout , "__free not found linear address:%x,physical address:%x\n", linearAddr,phyaddr);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return FALSE;
 }
 

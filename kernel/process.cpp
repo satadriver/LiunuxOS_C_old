@@ -47,11 +47,11 @@ void __terminateProcess(int vpid, char * filename, char * funcname, DWORD lppara
 	if (tss->pid != pid)
 	{
 		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s,current pid:%x not equal\n", pid, filename, funcname, tss->pid);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 	else {
 		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s\n", pid, filename, funcname);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 	LPPROCESS_INFO process = 0;
@@ -103,7 +103,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 	tss->vasize += alignsize;
@@ -128,7 +128,6 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		entry = getAddrFromName((DWORD)pemap, funcname);
 		if (entry == FALSE) {
 			__printf(szout, "__kCreateTask not found export function:%s in:%s\n", funcname, filename);
-			__drawGraphChars((unsigned char*)szout, 0);
 
 			__kFree(pemap);
 			tss->status = TASK_OVER;
@@ -227,8 +226,8 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		ret0->cs = tss->tss.cs;
 		ret0->eip = tss->tss.eip;
 		ret0->eflags = tss->tss.eflags;
-		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 #else
 		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
@@ -266,6 +265,9 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 
 #ifdef SINGLE_TASK_TSS
+		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+
 		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
 		ret3->ret0.cs = tss->tss.cs;
 		ret3->ret0.eip = tss->tss.eip;
@@ -339,7 +341,7 @@ int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWO
 	if (filename == 0 || funcname == 0)
 	{
 		__printf(szout, "__kCreateProcess filename or functionname is null\n");
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -349,7 +351,7 @@ int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWO
 	if (filesize <= 0)
 	{
 		__printf(szout, "__kCreateProcess readFileTo:%s error\n", filename);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -394,7 +396,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	if (ret == FALSE)
 	{
 		__printf(szout, "__kCreateProcess filename:%s function:%s __getFreeTask error\n", filename, funcname);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -420,7 +422,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 			}
 			else {
 				__printf(szout, "__kCreateProcess __initDosTss:%s error\n", filename);
-				__drawGraphChars((unsigned char*)szout, 0);
+
 				return FALSE;
 			}
 		}
@@ -433,7 +435,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 			if (funcname == 0)
 			{
 				__printf(szout, "__kCreateProcess run dll without function name\n");
-				__drawGraphChars((unsigned char*)szout, 0);
+
 				return FALSE;
 			}
 		}

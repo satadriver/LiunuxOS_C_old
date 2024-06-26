@@ -29,7 +29,7 @@ void output_byte(unsigned char byte)
 
 	unsigned char szout[1024];
 	__printf((char*)szout,"Unable to send byte to FDC\n");
-	__drawGraphChars(szout, 0);
+
 }
 
 
@@ -90,7 +90,6 @@ void FloppyReadSector(unsigned int sectNo,int seccnt, unsigned char *buf)
 
 	__printf(szout, "FloppyReadSector sector:%d,block:%d,track:%d,head:%d,seek_track:%d\r\n", 
 		sector,block,track,head,seek_track);
-	__drawGraphChars((unsigned char*)szout, 0);
 
 	/* 软盘重新校正 */
 

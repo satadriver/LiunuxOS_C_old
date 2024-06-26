@@ -144,7 +144,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	}
 	else if (__strcmp(params[0], "segments") == 0)
 	{
-		__printf(szout, "Kernel:%x,Kernel16:%x,KernelData:%x\r\n", gKernel32, gKernel16, gKernelData);
+		__sprintf(szout, "Kernel:%x,Kernel16:%x,KernelData:%x\r\n", gKernel32, gKernel16, gKernelData);
 		//__drawGraphChars((unsigned char*)szout, 0);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 		return 0;
@@ -183,7 +183,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			for (int i = 0; i < cnt; i++)
 			{
 				DWORD addr = __malloc(size);
-				__printf(szout, "malloc size:%x,address:%x\r\n", size, addr);
+				__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
 				ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 			}
 		}
@@ -191,7 +191,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		{
 			int size = __hstr2i((unsigned char*)params[1]);
 			DWORD addr = __malloc(size);
-			__printf(szout, "malloc size:%x,address:%x\r\n", size, addr);
+			__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
 			ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
@@ -201,7 +201,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		{
 			DWORD addr = __hstr2i((unsigned char*)params[1]);
 			int size = __free(addr);
-			__printf(szout, "free size:%x,address:%x\r\n", size, addr);
+			__sprintf(szout, "free size:%x,address:%x\r\n", size, addr);
 			ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
@@ -248,12 +248,12 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	else if (__strcmp(params[0], "tickcnt") == 0)
 	{
 		DWORD cnt = *(DWORD*)TIMER0_TICK_COUNT;
-		__printf(szout, "%x\r\n", cnt);
+		__sprintf(szout, "%x\r\n", cnt);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "time") == 0)
 	{
-		__printf(szout, "%s\n", (char*)CMOS_DATETIME_STRING);
+		__sprintf(szout, "%s\n", (char*)CMOS_DATETIME_STRING);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdtsc") == 0)
@@ -265,7 +265,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			mov l, eax
 			mov h, edx
 		}
-		__printf(szout, "rdtsc:%x%x\n", h, l);
+		__sprintf(szout, "rdtsc:%x%x\n", h, l);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdpmc") == 0)
@@ -278,14 +278,14 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			mov l, eax
 			mov h, edx
 		}
-		__printf(szout, "rdpmc:%x%x\n", h, l);
+		__sprintf(szout, "rdpmc:%x%x\n", h, l);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "cpu_temprature") == 0)
 	{
 		DWORD tj = 0;
 		DWORD temp = __readTemperature(&tj);
-		__printf(szout, "tj:%x,temprature:%d\n", temp);
+		__sprintf(szout, "tj:%x,temprature:%d\n", temp);
 		ret = __outputConsole((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "exit") == 0)

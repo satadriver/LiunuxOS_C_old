@@ -44,7 +44,7 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 
 	char szout[1024];
 	__printf(szout, "getAddrFromName module:%x,name:%s error\n", module,funname);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return 0;
 }
 
@@ -61,7 +61,7 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord) {
 	{
 		char szout[1024];
 		__printf(szout, "getAddrFromOrd module:%x,ord:%d error\n", module, ord);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return 0;
 	}
 
@@ -275,7 +275,7 @@ DWORD importTable(DWORD module) {
 				if (addr <= 0)
 				{
 					__printf(szout, "getAddrFromOrd function no:%d from lib:%s error\r\n", ord, dllname);
-					__drawGraphChars((unsigned char*)szout, 0);
+
 					break;
 				}
 				else{
@@ -289,7 +289,7 @@ DWORD importTable(DWORD module) {
 				if (addr <= 0)
 				{
 					__printf(szout, "getAddrFromOrd function:%s from lib:%s error\r\n", impname->Name, dllname);
-					__drawGraphChars((unsigned char*)szout, 0);
+
 					break;
 				}
 				else {
@@ -368,7 +368,7 @@ DWORD loadLibFile(char * dllname) {
 		}
 		else {
 			__printf(szout, "loadlib readFileTo:%s  error\n", szdllpath);
-			__drawGraphChars((unsigned char*)szout, 0);
+
 			return FALSE;
 		}
 	}
@@ -474,7 +474,7 @@ void __kKeepModule(char * filename, DWORD addr) {
 
 	char szout[1024];
 	__printf(szout, "__kKeepModule filename:%s,address:%x\n", filename, addr);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return;
 }
 

@@ -196,7 +196,7 @@ void addCmosAlarmTimer(DWORD interval) {
 
 	char szout[1024];
 	__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 }
 
 
@@ -208,7 +208,6 @@ void __kCmosAlarmProc() {
 
 	char szout[1024];
 	__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
-	__drawGraphChars((unsigned char*)szout, 0);
 
 	return ;
 
@@ -263,7 +262,7 @@ void __doAlarmTask(DWORD  param) {
 
 	char szout[1024];
 	__printf(szout, "set cmos alarm complete\n");
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	//return;
 
 	DWORD backsize = gBytesPerPixel*(gVideoWidth)*(gVideoHeight);

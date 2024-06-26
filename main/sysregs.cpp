@@ -58,7 +58,7 @@ int getpids(char * szout) {
 	{
 		if (list->valid && list->process )
 		{
-			len = __printf(szout + outlen, "filename:%s funcname:%s address:%x pid:%d,tid:%d,level:%d\r\n",
+			len = __sprintf(szout + outlen, "filename:%s funcname:%s address:%x pid:%d,tid:%d,level:%d\r\n",
 				list->process->filename, list->process->funcname, list->process->moduleaddr, 
 				list->process->pid, list->process->tid, list->process->level);
 			outlen += len;
@@ -93,7 +93,7 @@ int getpid(int pid,char * szout) {
 	{
 		if (list->valid && list->process && list->process->tid == pid)
 		{
-			int len = __printf(szout, "filename:%s funcname:%s address:%x pid:%d,tid:%d,level:%d\r\n",
+			int len = __sprintf(szout, "filename:%s funcname:%s address:%x pid:%d,tid:%d,level:%d\r\n",
 				list->process->filename, list->process->funcname, list->process->moduleaddr, 
 				list->process->pid, list->process->tid, list->process->level);
 			return len;
@@ -169,7 +169,7 @@ int getGeneralRegs(char * szout) {
 		mov eflags,eax
 	}
 
-	int len = __printf(szout, "eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esp:%x,esi:%x,edi:%x,eflags:%x,ss:%x,es:%x,ds:%x,fs:%x,gs:%x,cs:%x,eip:%x\r\n",
+	int len = __sprintf(szout, "eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esp:%x,esi:%x,edi:%x,eflags:%x,ss:%x,es:%x,ds:%x,fs:%x,gs:%x,cs:%x,eip:%x\r\n",
 		reax, recx, redx, rebx, rebp, resp, resi, redi, eflags,rss, res, rds, rfs, rgs, rcs, reip);
 	return len;
 }
@@ -195,9 +195,7 @@ int getldt(char * szout) {
 
 	int ldtlen = ldtbase->limitLow + ((ldtbase->gd0a_lh & 0x0f) << 16) + 1;
 
-	char szshow[1024];
-	__printf(szshow, "ldt selector:%d,base:%x,size:%d\r\n",ldt, ldtbase, ldtlen);
-	__drawGraphChars((unsigned char*)szshow, 0);
+	__printf(szout, "ldt selector:%d,base:%x,size:%d\r\n",ldt, ldtbase, ldtlen);
 
 	//__int64 * pldts = (__int64*)ldtbase;
 	__int64 * pldts = (__int64*)((ldtbase->baseLow) + (ldtbase->baseMid << 16) + (ldtbase->baseHigh << 24));
@@ -206,7 +204,7 @@ int getldt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		len = __printf(szout + outlen, "ldt %d:%I64u\n", i, pldts[i]);
+		len = __sprintf(szout + outlen, "ldt %d:%I64u\n", i, pldts[i]);
 		outlen += len;
 		//__drawGraphChars((unsigned char*)szout, 0);
 	}
@@ -234,7 +232,7 @@ int getgdt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		l = __printf(szout + outlen, "gdt %d:%I64u\n", i, pgdts[i]);
+		l = __sprintf(szout + outlen, "gdt %d:%I64u\n", i, pgdts[i]);
 		outlen += l;
 		//__drawGraphChars((unsigned char*)szout, 0);
 	}
@@ -266,7 +264,7 @@ int getidt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		l =  __printf(szout + outlen, "idt %d:%I64u\n", i, pidts[i]);
+		l =  __sprintf(szout + outlen, "idt %d:%I64u\n", i, pidts[i]);
 		outlen += l;
 		//__drawGraphChars((unsigned char*)szout, 0);
 	}

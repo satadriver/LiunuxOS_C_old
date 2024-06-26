@@ -35,10 +35,13 @@ typedef struct {
 	DWORD eflags;
 	DWORD esp3;
 	DWORD ss3;
-	DWORD gs_v86;
-	DWORD fs_v86;
-	DWORD ds_v86;
 	DWORD es_v86;
+	DWORD ds_v86;
+	DWORD fs_v86;
+	DWORD gs_v86;
+	
+	
+	
 }LIGHT_ENVIRONMENT;
 
 #pragma pack()

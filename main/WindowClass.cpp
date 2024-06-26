@@ -44,7 +44,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			if (filesize <= 0)
 			{
 				__printf(szout, "__kFullWindowPic read file:%s error\n", filename);
-				__drawGraphChars((unsigned char*)szout, 0);
+
 				__restoreWindow(&window);
 				return -1;
 			}
@@ -60,7 +60,6 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			if (retvalue <= 0)
 			{
 				__printf(szout, "__kFullWindowPic showBmp:%s error\n", filename);
-				__drawGraphChars((unsigned char*)szout, 0);
 
 				//__restoreWindow(&window);
 				//return -1;

@@ -134,7 +134,7 @@ int doFileAction(LPFILEBROWSER files) {
 	if (files->filesize > 0x10000000)
 	{
 		__printf(szout, "doFileAction filename:%s size:%x error\n", files->pathname, files->filesize);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -143,7 +143,7 @@ int doFileAction(LPFILEBROWSER files) {
 	if (readsize <= 0)
 	{
 		__printf(szout, "doFileAction readFileData:%s size:%x error\n", files->pathname, files->filesize);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -212,7 +212,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	LPTASKCMDPARAMS cmd = (LPTASKCMDPARAMS)param;
 	__printf(szout, "__kFileManager task tid:%x,name:%s,cmd:%d\n", tid, filename, cmd->cmd);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 
 	if (cmd->cmd == UNKNOWN_FILE_SYSTEM)
 	{
@@ -313,20 +313,20 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			char szinfo[4096];
 			if (files[number].attrib & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				int len = __printf(szinfo, "%s        DIR(%x)        %d(bytes)",
+				int len = __sprintf(szinfo, "%s        DIR(%x)        %d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
 				__drawGraphChar((unsigned char*)szinfo, FILE_DIR_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else if (files[number].attrib & FILE_ATTRIBUTE_ARCHIVE)
 			{
-				int len = __printf(szinfo, "%s        FILE(%x)       %d(bytes)",
+				int len = __sprintf(szinfo, "%s        FILE(%x)       %d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
 				__drawGraphChar((unsigned char*)szinfo, FILE_FILE_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else {
-				int len = __printf(szinfo, "%s        UNKNOWN(%x)    %d(bytes)",
+				int len = __sprintf(szinfo, "%s        UNKNOWN(%x)    %d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
 				__drawGraphChar((unsigned char*)szinfo, FILE_UNKNOWN_FONT_COLOR, pos, window.window.fontcolor);

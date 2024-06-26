@@ -37,7 +37,7 @@ DWORD getAddrFromNameV(DWORD module, const char * funname,DWORD vaddr) {
 
 	char szout[1024];
 	__printf(szout, "getAddrFromName module:%x,name:%s error\n", module, funname);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 	return 0;
 }
 
@@ -54,7 +54,7 @@ DWORD getAddrFromOrdV(DWORD module, DWORD ord,DWORD vaddr) {
 	{
 		char szout[1024];
 		__printf(szout, "getAddrFromOrd module:%x,ord:%d error\n", module, ord);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return 0;
 	}
 

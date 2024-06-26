@@ -187,13 +187,12 @@ void __kDebugger(unsigned int * regs) {
 			mov dr7,eax
 		}
 		len = __printf(szout, "BD debugger\r\n");
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 	
 	if (reg_dr6 & 0x4000)	//BS
 	{
 		len = __printf(szout, "BS debugger\r\n");
-		__drawGraphChars((unsigned char*)szout, 0);
 
 		__kBreakPoint(regs);
 	}
@@ -201,7 +200,7 @@ void __kDebugger(unsigned int * regs) {
 	if (reg_dr6 & 0x8000)	//BT
 	{
 		len = __printf(szout, "BT debugger\r\n");
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 	DWORD addr = 0;
@@ -279,7 +278,7 @@ void __kDebugger(unsigned int * regs) {
 	if((reg_dr6 & 1) || (reg_dr6 & 2) || (reg_dr6 & 4) || (reg_dr6 & 8)){
 
 		len = __printf(szout, "breakpoint address:%x,type:%d,bplen:%d\r\n",addr, bptype,bplen);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 	__asm {

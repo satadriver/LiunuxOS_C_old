@@ -130,10 +130,11 @@ typedef struct {
 
 typedef struct {
 	RETUTN_ADDRESS_3 ret3;
-	DWORD gs;
-	DWORD fs;
-	DWORD ds;
 	DWORD es;
+	DWORD ds;
+	DWORD fs;
+	DWORD gs;
+
 }RETUTN_ADDRESS_V86;
 
 typedef struct

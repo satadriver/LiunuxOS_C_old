@@ -166,7 +166,7 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father)
 	if (ret <= 0)
 	{
 		__printf(szout, "getNtfsDirs readSector mft low:%x,high:%x error\n", low, high);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return cnt;
 	}
 
@@ -234,7 +234,7 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father)
 					clsno += nextclsno;
 
 					__printf(szout, "read filename:%s,sector:%x,cluster number:%x,count:%x\n", pathname, secoff, clsno, clscnt);
-					__drawGraphChars((unsigned char*)szout, 0);
+
 
 					unsigned long long idxsecoff = gNtfsDbr.hideSectors + clsno * g_SecsPerCluster;
 					DWORD low = idxsecoff & 0xffffffff;
@@ -243,8 +243,9 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father)
 					ret = readSector(low, high, (DWORD)(g_SecsPerCluster * clscnt), (char*)buffer);
 					if (ret <= 0)
 					{
-						__printf(szout, "getNtfsDirs readSector at sector:%x,count:%x error in 0xA0\n", (DWORD)idxsecoff, g_SecsPerCluster * clscnt);
-						__drawGraphChars((unsigned char*)szout, 0);
+						__printf(szout, "getNtfsDirs readSector at sector:%x,count:%x error in 0xA0\n",
+							(DWORD)idxsecoff, g_SecsPerCluster * clscnt);
+
 						break;
 					}
 					else {

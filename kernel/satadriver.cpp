@@ -154,7 +154,7 @@ int getHdPort() {
 		}
 
 		__printf((char*)szshow, "get ide hd slave port:%x,device:%x\n", gHdBasePort, gMSDev);
-		__drawGraphChars((unsigned char*)szshow, 0);
+
 
 		ret = testHdPort(0x377);
 		if (ret)
@@ -162,7 +162,7 @@ int getHdPort() {
 			gCDROMBasePort = 0x370;
 
 			__printf((char*)szshow, "get ide cdrom slave port:%x\n", gCDROMBasePort);
-			__drawGraphChars((unsigned char*)szshow, 0);
+
 		}
 
 		readSector = readPortSector;
@@ -191,7 +191,7 @@ int getHdPort() {
 		}
 
 		__printf((char*)szshow, "get ide hd master port:%x,device:%x\n", gHdBasePort, gMSDev);
-		__drawGraphChars((unsigned char*)szshow, 0);
+
 
 		ret = testHdPort(0x177);
 		if (ret)
@@ -199,7 +199,7 @@ int getHdPort() {
 			gCDROMBasePort = 0x170;
 
 			__printf((char*)szshow, "get ide cdrom master port:%x\n", gCDROMBasePort);
-			__drawGraphChars((unsigned char*)szshow, 0);
+
 
 			// 			ret = checkAtapiPort(gCDROMBasePort + 7);
 			// 			if (ret > 0)
@@ -250,7 +250,7 @@ int getHdPort() {
 					gHdBasePort = hdport[i];
 
 					__printf((char*)szshow, "get sata hd mimo:%x,master_slave:%x\n", gHdBasePort, gMSDev);
-					__drawGraphChars((unsigned char*)szshow, 0);
+
 
 					ret = testHdPortMimo(hdport[i + 1] + 7);
 					if (ret)
@@ -258,7 +258,7 @@ int getHdPort() {
 						gCDROMBasePort = hdport[i + 1];
 
 						__printf((char*)szshow, "get sata cdrom mimo:%x,master_slave:%x\n", gCDROMBasePort, gMSDev);
-						__drawGraphChars((unsigned char*)szshow, 0);
+
 					}
 
 					return TRUE;
@@ -271,7 +271,7 @@ int getHdPort() {
 					gHdBasePort = hdport[i] & 0xfffe;
 
 					__printf((char*)szshow, "get sata hd port:%x,master_slave:%x\n", gHdBasePort, gMSDev);
-					__drawGraphChars((unsigned char*)szshow, 0);
+
 
 					ret = testHdPort((hdport[i + 1] & 0xfffe) + 7);
 					if (ret)
@@ -279,7 +279,7 @@ int getHdPort() {
 						gCDROMBasePort = hdport[i + 1] & 0xfffe;
 
 						__printf((char*)szshow, "get sata cdrom port:%x,master_slave:%x\n", gCDROMBasePort, gMSDev);
-						__drawGraphChars((unsigned char*)szshow, 0);
+
 					}
 
 					return TRUE;
@@ -1080,7 +1080,7 @@ int getHarddiskInfo(char* buf) {
 	char szout[1024];
 	__printf(szout, "harddisk sequence:%s,firmware version:%s,type:%s,type sequence:%s\r\n",
 		(char*)HARDDISK_INFO_BASE + 20, (char*)HARDDISK_INFO_BASE + 46, (char*)HARDDISK_INFO_BASE + 54, (char*)HARDDISK_INFO_BASE + 176 * 2);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 }
 
 

@@ -53,7 +53,7 @@ DWORD openFile(const char* fn, int writemode, LPFAT32DIRECTORY outdir,int *dirin
 					}
 					else {
 						__printf((char*)szout, "open file:%s read dir in sector:%d error", fn, sectoroffset);
-						__drawGraphChars(szout, 0);
+
 						break;
 					}
 				}

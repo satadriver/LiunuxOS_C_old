@@ -140,14 +140,14 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 	if (ret <= 0)
 	{
 		__printf(szout, "getNtfsDir readSector mft sector low:%x,high:%x error\n", low, high);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
 	if (__memcmp(msfinfo, "FILE", 4))
 	{
 		__printf(szout, "getNtfsDir mft format error in file:%s sector:%x\n", filename, low);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -223,7 +223,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 
 					__printf(szout, "searching filename:%s,previous path sector:%x,current cluster:%x,cluster total:%x in mft 0xA0\n",
 						filename, secoff, clsno, clscnt);
-					__drawGraphChars((unsigned char*)szout, 0);
+		
 
 					//索引值的计算:隐藏扇区数+每簇扇区数 *索引簇号
 					//文件查找：A0中查找
@@ -243,7 +243,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 
 						__printf(szout, "getNtfsDir readSector error in file:%s,sector:%x,sector count:%x in 0xA0\n",
 							filename, (DWORD)idxsecoff, g_SecsPerCluster * clscnt);
-						__drawGraphChars((unsigned char*)szout, 0);
+
 						break;
 					}
 
@@ -312,14 +312,14 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 	if (ret <= 0)
 	{
 		__printf((char*)szout, "getNtfsFileData read sector:%x error\n", (DWORD)secoff);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
 	if (__memcmp(msfinfo, "FILE", 4))
 	{
 		__printf((char*)szout, "getNtfsFileData mft sector:%x format error\n", (DWORD)secoff);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return FALSE;
 	}
 
@@ -403,7 +403,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 					if (ret <= 0)
 					{
 						__printf((char*)szout, "getNtfsFileData readSector:%x,count:%x error\n", (DWORD)datasecoff, clscnt * g_SecsPerCluster);
-						__drawGraphChars((unsigned char*)szout, 0);
+
 						return FALSE;
 					}
 					lpdata += clscnt * g_ClusterSize;
@@ -479,7 +479,7 @@ int readNtfsFile(char* filename, char** buf) {
 			if (dirclsno == FALSE)
 			{
 				__printf((char*)szout, "ntfs not found file:%s in mft,previous sector:%x\n", nextpath, (DWORD)secoff);
-				__drawGraphChars((unsigned char*)szout, 0);
+
 				break;
 			}
 			else {

@@ -99,7 +99,7 @@ int browseFat12File(LPFILEBROWSER files) {
 		}
 		else {
 			__printf(szout, "find floppy device:%x\n", gFloppyDev);
-			__drawGraphChars((unsigned char*)szout, 0);
+
 		}
 	}
 	

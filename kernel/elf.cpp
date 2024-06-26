@@ -137,7 +137,6 @@ int initElf(DWORD file, int filesize, DWORD base) {
 		if (reltype == 0)
 		{
 			__printf(szout,"unsupport relocatoin type:%d,rel address:%x\r\n", reltype,va);
-			__drawGraphChars((unsigned char*)szout, 0);
 
 		}else if (reltype == 6)
 		{
@@ -165,7 +164,7 @@ int initElf(DWORD file, int filesize, DWORD base) {
 		}
 
 		__printf("function:%s,rel addr:%x,info:%x,new addr:%x\r\n", sym[funcno].st_name + strsym, va, rel[i].r_info, *lpaddr);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 	}
 
 	return 0;

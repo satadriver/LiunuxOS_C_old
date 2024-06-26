@@ -18,7 +18,7 @@ DWORD __kTerminateThread(int vtid, char * filename, char * funcname, DWORD lppar
 
 	char szout[1024];
 	__printf(szout, "__kTerminateThread tid:%d,filename:%s,funcname:%s\n", tid, filename, funcname);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 
 	if (vtid & 0x80000000)
 	{
@@ -110,8 +110,8 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		ret0->cs = tss->tss.cs;
 		ret0->eip = tss->tss.eip;
 		ret0->eflags = tss->tss.eflags;
-		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 #else
 		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
@@ -144,6 +144,8 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #ifdef SINGLE_TASK_TSS
+		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
 		ret3->ret0.cs = tss->tss.cs;
 		ret3->ret0.eip = tss->tss.eip;

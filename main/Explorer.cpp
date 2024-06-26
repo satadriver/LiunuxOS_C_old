@@ -42,7 +42,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	char szout[1024];
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 
 	initWindowList();
 
@@ -72,7 +72,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	char cpuinfo[1024];
 	getCpuInfo(cpuinfo);
 	__printf(szout, "CPU MODEL:%s,details:%s,video height:%d,width:%d,pixel:%d\n", cputype, cpuinfo, gVideoHeight, gVideoWidth, gBytesPerPixel);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 
 	showPciDevs();
 

@@ -550,7 +550,7 @@ void kbdtest() {
 	{
 		DWORD pos = ( GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2)*gBytesPerPixel;
 
-		__printf(szout, "input key:%x,%s,status:%x\n", key,&key,status);
+		__sprintf(szout, "input key:%x,%s,status:%x\n", key,&key,status);
 		__drawGraphChar((unsigned char*)szout, 0, pos, TASKBARCOLOR);
 
 		if (key == 0x1b) {

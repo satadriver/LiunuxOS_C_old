@@ -66,7 +66,7 @@ int showBmp(char * filename, unsigned char * data, int filesize,int x,int y) {
 	ret = showBmpBits(x, y, info, data + bmphdr->bfOffBits);
 
 	__printf(szout, "bmp file:%s,size:%d,bit:%d,width:%d,height:%d\n", filename, filesize, info->biBitCount, info->biWidth, info->biHeight);
-	__drawGraphChars((unsigned char*)szout, 0);
+
 
 	return ret;
 }

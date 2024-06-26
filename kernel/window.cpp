@@ -105,7 +105,7 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	if (window == FALSE)
 	{
 		__printf(szout, "getFreeWindow error,first:%x,last:%x\n", gWindowsList, gWindowLast);
-		__drawGraphChars((unsigned char*)szout, 0);
+
 		return -1;
 	}
 	window->valid = TRUE;
