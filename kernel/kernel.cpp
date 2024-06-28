@@ -30,7 +30,7 @@
 #include "debugger.h"
 #include "descriptor.h"
 #include "elf.h"
-
+#include "page.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -105,6 +105,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86
 	initMemory();
 
 	initPage();
+
+	enablePage();
 
 	__initTask();
 

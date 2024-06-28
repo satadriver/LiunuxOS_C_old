@@ -21,6 +21,8 @@ void initPage() {
 
 	//gPageTableBase = __kMalloc(PAGE_TABLE_SIZE);
 	gPageTableBase = PAGE_TABLE_BASE;
+
+
 }
 
 LPMEMALLOCINFO checkPageExist(DWORD addr) {
@@ -200,4 +202,42 @@ void freeProcessPages() {
 	} while (info != gPageAllocList);
 
 	__leaveSpinLock(&gPageAllocLock);
+}
+
+
+//R/W--位1是读/写（Read/Write）标志。如果等于1，表示页面可以被读、写或执行。如果为0，表示页面只读或可执行。
+//当处理器运行在超级用户特权级（级别0、1或2）时，则R/W位不起作用。页目录项中的R/W位对其所映射的所有页面起作用。
+//U/S--位2是用户/超级用户（User / Supervisor）标志。如果为1，那么运行在任何特权级上的程序都可以访问该页面。
+//如果为0，那么页面只能被运行在超级用户特权级（0、1或2）上的程序访问。页目录项中的U / S位对其所映射的所有页面起作用。
+
+void initPageTable() {
+
+	DWORD* idx = (DWORD*)PTE_ENTRY_VALUE;
+	DWORD* entry = (DWORD*)PDE_ENTRY_VALUE;
+
+	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
+	for (int i = 0; i < ITEM_IN_PAGE; i++) {
+		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+		for (int j = 0; j < ITEM_IN_PAGE; j++) {
+			idx[j] = buf;
+			buf += PAGE_SIZE;
+		}
+		idx += ITEM_IN_PAGE;
+	}
+}
+
+
+void enablePage() {
+
+	initPageTable();
+
+	__asm {
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3,eax
+
+		mov eax,cr0
+		or eax,0x80000000
+		mov cr0,eax
+	}
+
 }

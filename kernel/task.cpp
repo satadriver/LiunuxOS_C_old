@@ -96,6 +96,11 @@ TASK_LIST_ENTRY* removeTaskList(int tid) {
 
 
 
+
+void initTss() {
+
+}
+
 int __initTask() {
 
 	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -119,11 +124,10 @@ int __initTask() {
 	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
 	process0->level = 0;
 	process0->counter = 0;
+	process0->tss.ss0 = KERNEL_MODE_STACK;
 	process0->tss.esp0 = TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	process0->tss.iomapOffset = 136;
 	process0->tss.iomapEnd = 0xff; 
-	process0->tss.ss0 = KERNEL_MODE_STACK;
-
 	__memset((char*)process0->tss.intMap, 0, sizeof(process0->tss.intMap));
 	__memset((char*)process0->tss.iomap, 0, sizeof(process0->tss.iomap));
 	process0->tss.cr3 = PDE_ENTRY_VALUE;
@@ -677,7 +681,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	dwcr3 = process->tss.cr3;
 	__asm {
 		mov eax, dwcr3
-		mov cr3, eax
+		//mov cr3, eax
 	}
 
 	return TRUE;
