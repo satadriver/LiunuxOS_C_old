@@ -8,7 +8,7 @@ void initListEntry(LIST_ENTRY * list) {
 }
 
 //add after head
-void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
+void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 	if (head == list)
 	{
 		head->next = list;
@@ -25,8 +25,8 @@ void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 	headnext->prev = list;
 }
 
-//add before head
-void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
+//add to head
+void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 	if (head == list)
 	{
 		head->next = list;
@@ -42,7 +42,7 @@ void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 	head->prev = list;
 }
 
-int existlist(LIST_ENTRY * head, LPLIST_ENTRY list) {
+int searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
 	if (head == list)
 	{
 		return TRUE;
@@ -69,11 +69,12 @@ void removelist(LPLIST_ENTRY list) {
 	if (list->next == 0 && list->prev == 0)
 	{
 		return;
-	}else if (list->next == 0)
+	}
+	else if (list->next == 0 && list->prev)
 	{
 		list->prev->next = 0;
 	}
-	else if (list->prev == 0)
+	else if (list->prev == 0 && list->next)
 	{
 		list->next->prev = 0;
 	}
@@ -87,11 +88,3 @@ void removelist(LPLIST_ENTRY list) {
 
 
 
-void clearlist(LPLIST_ENTRY list) {
-
-	LPLIST_ENTRY ptr = list;
-	while (ptr)
-	{
-
-	}
-}

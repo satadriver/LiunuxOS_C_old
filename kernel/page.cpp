@@ -7,13 +7,14 @@
 
 
 LPMEMALLOCINFO gPageAllocList = 0;
+
 DWORD gPageAllocLock = FALSE;
 
 DWORD gPageTableBase = 0;
 
 
 void initPage() {
-	gPageAllocList = (LPMEMALLOCINFO)PAGE_INFO_PAGE;
+	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	initListEntry(&gPageAllocList->list);
 	gPageAllocList->addr = 0;
 	gPageAllocList->size = 0;
@@ -44,7 +45,7 @@ LPMEMALLOCINFO checkPageExist(DWORD addr) {
 LPMEMALLOCINFO getFreePageItem() {
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gPageAllocList;
 
-	int c = PAGE_INFO_PAGE_SIZE / sizeof(MEMALLOCINFO);
+	int c = PAGE_ALLOC_LIST_SIZE / sizeof(MEMALLOCINFO);
 	for (int i = 0; i < c; i++)
 	{
 		if (info[i].size == 0 && info[i].addr == 0)
@@ -59,21 +60,21 @@ LPMEMALLOCINFO getFreePageItem() {
 
 
 extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
-	DWORD ret = 0;
+	DWORD res = 0;
 
 	if (size % PAGE_SIZE)
 	{
 		return FALSE;
 	}
 
-	__enterSpinLock(&gPageAllocLock);
-
 	int factor = 1;
 	DWORD addr = gPageTableBase + size*factor;
 	if (addr + size > gPageTableBase + PAGE_TABLE_SIZE)
 	{
-		goto __kPageAlloc_quit;
+		return FALSE;
 	}
+
+	__enterSpinLock(&gPageAllocLock);
 
 	LPMEMALLOCINFO info = checkPageExist(addr);
 	if (info == 0)
@@ -86,50 +87,70 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 			info->pid = tss->pid;
 			addlistTail((LPLIST_ENTRY)gPageAllocList, (LPLIST_ENTRY)info);
-			ret = addr;
+			res = addr;
 		}
-
-		goto __kPageAlloc_quit;
+		else {
+			res = -1;
+		}
 	}
-
-	while (1)
-	{
-		if (factor > 1 && info->size <= size)
+	else {
+		while (1)
 		{
-			for (int i = 0; i < factor - 1; i++)
+			if (factor > 1 && info->size <= size)
 			{
-				addr += size;
-				if (addr + size > gPageTableBase + PAGE_TABLE_SIZE)
+				for (int i = 0; i < factor - 1; i++)
 				{
-					goto __kPageAlloc_quit;
-				}
-
-				info = checkPageExist(addr);
-				if (info == 0)
-				{
-					info = getFreePageItem();
-					if (info)
+					addr += size;
+					if (addr + size > gPageTableBase + PAGE_TABLE_SIZE)
 					{
-						info->size = size;
-						info->addr = addr;
-						LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-						info->pid = tss->pid;
-						addlistTail((LPLIST_ENTRY)gPageAllocList, (LPLIST_ENTRY)info);
-						ret = addr;
+						res = -1;
+						break;
 					}
-					goto __kPageAlloc_quit;
+
+					info = checkPageExist(addr);
+					if (info == 0)
+					{
+						info = getFreePageItem();
+						if (info)
+						{
+							info->size = size;
+							info->addr = addr;
+							LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+							info->pid = tss->pid;
+							addlistTail((LPLIST_ENTRY)gPageAllocList, (LPLIST_ENTRY)info);
+							res = addr;
+						}
+						else {
+							res = -1;
+						}
+						break;
+					}
+					else {
+						break;
+					}
 				}
 			}
-		}
+			else {
+				//noting to do
+			}
 
-		factor = (factor << 1);
-		addr = gPageTableBase + size * factor;
+			if (res == 0) {
+				factor = (factor << 1);
+				addr = gPageTableBase + size * factor;
+			}
+			else {
+				break;
+			}
+		}
 	}
 
-__kPageAlloc_quit:
 	__leaveSpinLock(&gPageAllocLock);
 
-	return ret;
+	if (res == -1) {
+		res = 0;
+	}
+
+	return res;
 }
 
 extern "C"  __declspec(dllexport) int __kFreePage(DWORD addr) {
@@ -218,6 +239,7 @@ void initPageTable() {
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 	for (int i = 0; i < ITEM_IN_PAGE; i++) {
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+
 		for (int j = 0; j < ITEM_IN_PAGE; j++) {
 			idx[j] = buf;
 			buf += PAGE_SIZE;

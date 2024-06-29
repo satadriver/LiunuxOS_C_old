@@ -3,9 +3,14 @@
 #include "Utils.h"
 #include "video.h"
 #include "satadriver.h"
+#include "task.h"
 
 
 
+DWORD getCurrentCr3() {
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	return process->tss.cr3;
+}
 
 void saveScreen() {
 
@@ -111,3 +116,5 @@ int setVideoMode(int mode) {
 		int 80h
 	}
 }
+
+

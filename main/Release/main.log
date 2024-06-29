@@ -1,14 +1,25 @@
 ﻿d:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets\v141_xp\Toolset.targets(39,5): warning MSB8051: 面向 Windows XP 的支持已被弃用，将来的 Visual Studio 版本不再提供该支持。请访问 https://go.microsoft.com/fwlink/?linkid=2023588，获取详细信息。
 cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
+  ntfsDirs.cpp
+E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\NTFS\ntfsDirs.cpp(277): warning C4018: “>=”: 有符号/无符号不匹配
   console.cpp
   explorer.cpp
 E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\hept.h(29): warning C4200: 使用了非标准扩展: 结构/联合中的零大小数组
   E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\hept.h(29): note: 默认构造函数或 copy/move 赋值运算符将忽略此成员
 E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\explorer.cpp(147): warning C4018: “<”: 有符号/无符号不匹配
 E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\explorer.cpp(149): warning C4018: “<”: 有符号/无符号不匹配
+  fat12.cpp
+E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\fat12\fat12.cpp(159): warning C4244: “参数”: 从“unsigned long”转换到“short”，可能丢失数据
+  fat32dirs.cpp
   fileManager.cpp
 E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\fileManager.cpp(446): warning C4018: “<”: 有符号/无符号不匹配
   fileManagerWindow.cpp
+  jpeg.cpp
+  graph.cpp
+  ios9660.cpp
+E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\ios9660\ios9660.cpp(126): warning C4018: “>=”: 有符号/无符号不匹配
+  machine.cpp
+  main.cpp
   menu.cpp
 E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\menu.cpp(24): warning C4018: “<=”: 有符号/无符号不匹配
 E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\menu.cpp(26): warning C4018: “<=”: 有符号/无符号不匹配
@@ -20,6 +31,7 @@ E:\virtualbox\vmshare\liunux\LiunuxOS_C\main\menu.cpp(106): warning C4018: “<�
   paint.cpp
   sysregs.cpp
   taskBar.cpp
+  userUtils.cpp
   windowClass.cpp
   正在生成代码...
     正在创建库 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.lib 和对象 E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\main.exp

@@ -17,7 +17,7 @@
 
 TASK_LIST_ENTRY *gTasksListPtr = 0;
 
-DWORD g_taskLock = 0;
+
 
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
@@ -32,9 +32,7 @@ void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) 
 
 
 TASK_LIST_ENTRY* searchTaskList(int tid) {
-	TASK_LIST_ENTRY* tasklist = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)tasklist;
+	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (list[i].valid  && list[i].process->status == TASK_RUN && list[i].process->tid == tid) {
@@ -107,13 +105,6 @@ int __initTask() {
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
 	{
 		__memset((char*)&tssbase[i], 0, sizeof(PROCESS_INFO));
-	}
-
-	DWORD *backuptables = (DWORD*)BACKUP_PAGE_TABLES;
-	DWORD * cr3 = (DWORD*)PDE_ENTRY_VALUE;
-	for (int i = 0; i < ITEM_IN_PAGE; i++)
-	{
-		backuptables[i] = cr3[i];
 	}
 
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -387,7 +378,7 @@ int __resumePid(int pid) {
 }
 
 
-#ifndef SINGLE_TASK_TSS
+#ifndef TASK_SINGLE_TSS
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs) {
 
 	systimerProc();
@@ -555,7 +546,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 				break;
 			}
 		}
-	} while (1);
+	} while (TRUE);
 
 	gTasksListPtr = (TASK_LIST_ENTRY*)next;
 

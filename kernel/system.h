@@ -1,6 +1,7 @@
 #pragma once
 
 
+DWORD getCurrentCr3();
 
 void saveScreen();
 

@@ -95,7 +95,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			return FALSE;
 		}
 
-		ret = phy2linear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (ret == FALSE)
 		{
 			__kFree(tss->espbase);
@@ -105,7 +105,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
-#ifdef SINGLE_TASK_TSS
+#ifdef TASK_SINGLE_TSS
 		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
 		ret0->cs = tss->tss.cs;
 		ret0->eip = tss->tss.eip;
@@ -132,7 +132,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			return FALSE;
 		}
 
-		ret = phy2linear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (ret == FALSE)
 		{
 			__kFree(tss->espbase);
@@ -143,7 +143,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-#ifdef SINGLE_TASK_TSS
+#ifdef TASK_SINGLE_TSS
 		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));

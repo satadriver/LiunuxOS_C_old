@@ -37,7 +37,7 @@ typedef struct
 #pragma pack()
 
 
-LPMEMALLOCINFO getExistAddrInfo(DWORD addr,int size);
+LPMEMALLOCINFO getExistAddr(DWORD addr,int size);
 
 LPMEMALLOCINFO getFreeMemItem();
 

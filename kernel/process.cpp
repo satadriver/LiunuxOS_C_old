@@ -21,7 +21,7 @@ void __kFreeProcess(int pid) {
 
 	freeProcessMemory();
 
-	//do not need to free stack esp 0,because it must be existed in head of 100M
+	//do not need to free stack esp0
 	freeProcessPages();
 
 	//clearcr3();
@@ -46,12 +46,11 @@ void __terminateProcess(int vpid, char * filename, char * funcname, DWORD lppara
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	if (tss->pid != pid)
 	{
-		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s,current pid:%x not equal\n", pid, filename, funcname, tss->pid);
-
+		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s,current pid:%x not equal\n",
+			pid, filename, funcname, tss->pid);
 	}
 	else {
 		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s\n", pid, filename, funcname);
-
 	}
 
 	LPPROCESS_INFO process = 0;
@@ -66,7 +65,6 @@ void __terminateProcess(int vpid, char * filename, char * funcname, DWORD lppara
 		else if ( p->process->pid != p->process->tid)
 		{
 			TASK_LIST_ENTRY * list = removeTaskList(p->process->tid);
-
 		}
 		else {
 			process = p->process;
@@ -103,7 +101,6 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
-
 		return FALSE;
 	}
 	tss->vasize += alignsize;
@@ -115,25 +112,23 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 	tss->tss.ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
 
-	// 	__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->va);
-	// 	__drawGraphChars((unsigned char*)szout, 0);
+	//__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->va);
 
 	mapFile((char*)filedata, (char*)pemap);
 
 	DWORD entry = 0;
 	DWORD type = getType((DWORD)pemap);
-	if (type & 0x2000)
+	if (type & 0x2000)	//dll
 	{
-		//getAddrFromName 已经加了一个pemap，所以返回值必须减去它
 		entry = getAddrFromName((DWORD)pemap, funcname);
 		if (entry == FALSE) {
 			__printf(szout, "__kCreateTask not found export function:%s in:%s\n", funcname, filename);
-
 			__kFree(pemap);
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
 		else {
+			//getAddrFromName 已经加了一个pemap，所以必须减去它
 			entry = entry - pemap + USER_SPACE_START;
 		}
 	}
@@ -148,25 +143,27 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 	setImageBaseV((char*)pemap, USER_SPACE_START);
 
-	tss->tss.cr3 = initCr3((DWORD)pemap);
+	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
+	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
+	if (level & 3)
+	{
+		copyPdeTables(0, MEMMORY_ALLOC_BASE, (DWORD*)tss->tss.cr3);
+	}
+	else {
+		copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
+	}
+	copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
+	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
+
+	/*
+	tss->tss.cr3 = mapCodeToLinear((DWORD)pemap,level);
 	if (tss->tss.cr3 == 0)
 	{
 		clearCr3((DWORD*)tss->tss.cr3);
 		__kFreeProcess(pid);
 		tss->status = TASK_OVER;
 		return FALSE;
-	}
-
-	if (level & 3)
-	{
-		copyBackupTables(0, USER_SPACE_START, (DWORD*)tss->tss.cr3);
-		//copyBackupTables(0, MEMMORY_HEAP_BASE, (DWORD*)tss->tss.cr3);
-	}
-	else {
-		//copyBackupTables(0, MEMMORY_HEAP_BASE, (DWORD*)tss->tss.cr3);
-		copyBackupTables(0, USER_SPACE_START, (DWORD*)tss->tss.cr3);
-	}
-	copyBackupTables(USER_SPACE_END, 0 - USER_SPACE_END, (DWORD*)tss->tss.cr3);
+	}*/
 
 	DWORD syslevel = level & 3;
 	tss->level = syslevel;
@@ -211,7 +208,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			return FALSE;
 		}
 
-		result = phy2linear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (result == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -221,7 +218,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE  - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
-#ifdef SINGLE_TASK_TSS
+#ifdef TASK_SINGLE_TSS
 		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
 		ret0->cs = tss->tss.cs;
 		ret0->eip = tss->tss.eip;
@@ -253,7 +250,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			return FALSE;
 		}
 
-		result = phy2linear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (result == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -266,7 +263,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 
-#ifdef SINGLE_TASK_TSS
+#ifdef TASK_SINGLE_TSS
 		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 
@@ -292,14 +289,13 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, pid, vaddr);
 	
-	result = phy2linear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
+	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
 
 	tss->heapbase = vaddr;
-
 	tss->heapsize = heapsize;
+
 	tss->vasize += heapsize;
 	
-
 	params->terminate = (DWORD)__terminateProcess;
 	params->terminate2 = (DWORD)__terminateProcess;
 	params->tid = pid;

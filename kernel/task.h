@@ -39,9 +39,6 @@ typedef struct {
 	DWORD ds_v86;
 	DWORD fs_v86;
 	DWORD gs_v86;
-	
-	
-	
 }LIGHT_ENVIRONMENT;
 
 #pragma pack()
