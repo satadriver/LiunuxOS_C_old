@@ -127,7 +127,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86
 	__printf(szout, "Hello world of Liunux!\r\n");
 
 #ifndef TASK_SINGLE_TSS
-	__createDosInFileTask(gV86VMIEntry, "V86VMIEntry");
+	//__createDosInFileTask(gV86VMIEntry, "V86VMIEntry");
 #endif
 
 // 	TASKCMDPARAMS cmd;
@@ -155,15 +155,18 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86
 // 	FloppyReadSector(0, 1, (unsigned char*)FLOPPY_DMA_BUFFER);
 
 // 	ret = loadLibRunFun("c:\\liunux\\main.dll", "__kMainProcess");
- 	__printf(szout, "__kMainProcess result:%x\n", ret);
+ 	
 
-	__kCreateProcessFromAddrFunc(VSMAINDLL_LOAD_ADDRESS, 0x100000,  "__kExplorer", 3, 0);
+	int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+
+	__printf(szout, "__kMainProcess size:%x\n", imagesize);
+	__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize,  "__kExplorer", 3, 0);
 
 	while (1)
 	{
 		if (__findProcessFuncName("__kExplorer") == FALSE)
 		{
-			__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kExplorer", 3, 0);
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
 		}
 
 		__asm {

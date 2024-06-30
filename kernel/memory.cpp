@@ -57,7 +57,6 @@ DWORD mapCodeToLinear(DWORD pefiledata,int level) {
 	else {
 		copyPdeTables(0, 0, (DWORD*)cr3);
 	}
-	copyPdeTables(0, 0 , (DWORD*)cr3);
 
 	// 	__printf(szout, "initCr3:%x,pe:%x,imagebase:%x,imagesize:%x,table offset:%x,page offset:%x\r\n",
 	// 		cr3,pedata, imagebase, allocsize,tboffset,pgoffset);
@@ -146,21 +145,21 @@ DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
 	}
 
 	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
-
 	int tablecnt = size / tablesize;
 	if (size % tablesize)
 	{
 		tablecnt++;
 	}
 
-	if (size == 0) {
-		tablecnt = ITEM_IN_PAGE;
-	}
-
 	DWORD tboffset = addr / tablesize;
 	//DWORD pgoffset = (phyaddr / PAGE_SIZE) % ITEM_IN_PAGE;
 
-	DWORD * backcr3 = (DWORD*)PDE_ENTRY_VALUE;
+	DWORD* backcr3 = (DWORD*)PDE_ENTRY_VALUE;
+
+	if (size == 0 && addr == 0) {
+		tablecnt = ITEM_IN_PAGE;
+		tboffset = 0;
+	}
 
 	for (int i = tboffset; i <tboffset + tablecnt; i++)
 	{
@@ -222,14 +221,13 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD 
 		for (; j < ITEM_IN_PAGE; j++)
 		{
 			pagetable[j] = phyaddr | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
-
-			phyaddr += PAGE_SIZE;
-
 			remapcnt++;
 			if (remapcnt >= remapTotal)
 			{
 				break;
 			}
+
+			phyaddr += PAGE_SIZE;
 		}
 	}
 

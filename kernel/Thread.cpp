@@ -43,18 +43,29 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	{
 		return FALSE;
 	}
+
+	DWORD imagesize = getSizeOfImage((char*)addr);
+	DWORD alignsize = getAlignedSize(imagesize, PAGE_SIZE);
 	
 	//创建线程中，如果想要修改父进程的信息，必须在CURRENT_TASK_TSS_BASE中修改，如果CURRENT_TASK_TSS_BASE没被修改，线程切换时信息还是会被替换
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-
 	LPPROCESS_INFO tss = freetask.lptss;
-
-	__memcpy((char*)tss, (char*)process, sizeof(PROCESS_INFO));
-
+	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
+	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
+	tss->sleep = 0;
+	tss->tss.cr3 = process->tss.cr3;
+	tss->heapbase = process->heapbase;
+	tss->heapsize = process->heapsize;
+	tss->pid = process->pid;
+	tss->ppid = process->pid;
+	tss->level = process->level;
 	tss->status = TASK_SUSPEND;
-
-	//tss->tss.link = 0;
-	
+	tss->tss.link = 1;	
+	tss->tss.iomapOffset = 136;
+	tss->tss.iomapEnd = 0xff;
+	tss->vaddr = process->vaddr;
+	tss->vasize = process->vasize;
+	tss->vasize += alignsize;
 	tss->tss.eflags = process->tss.eflags;
 	int level = process->level;
 	if (level)
@@ -94,7 +105,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
+#ifndef DISABLE_PAGE_REDIRECTION
 		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (ret == FALSE)
 		{
@@ -102,7 +113,12 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
+		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#else
+		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#endif
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
 #ifdef TASK_SINGLE_TSS
@@ -113,8 +129,10 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 #else
-		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		//tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		//tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
 	}
 	else {
@@ -131,7 +149,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
+#ifndef DISABLE_PAGE_REDIRECTION
 		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (ret == FALSE)
 		{
@@ -139,13 +157,15 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
-		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-#ifdef TASK_SINGLE_TSS
+#else
 		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#endif
+		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
+
+#ifdef TASK_SINGLE_TSS
 		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
 		ret3->ret0.cs = tss->tss.cs;
 		ret3->ret0.eip = tss->tss.eip;
@@ -156,10 +176,15 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.esp = (DWORD)ret3;
 		tss->tss.ebp = (DWORD)ret3;
 		tss->tss.ss = KERNEL_MODE_STACK;
+
+		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #else
+		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
 	}
-	//还没有addTaskList,导致当前的tss中的vasize错误
+
 	tss->vasize += espsize;
 
 	params->terminate = (DWORD)__kTerminateThread;
@@ -181,7 +206,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->counter = 0;
 
-	tss->ppid = tss->ppid;
+	tss->ppid = process->pid;
 
 	__strcpy(tss->filename, process->filename);
 	__strcpy(tss->funcname, funcname);

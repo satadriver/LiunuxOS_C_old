@@ -1,2 +1,9 @@
 ﻿d:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets\v141_xp\Toolset.targets(39,5): warning MSB8051: 面向 Windows XP 的支持已被弃用，将来的 Visual Studio 版本不再提供该支持。请访问 https://go.microsoft.com/fwlink/?linkid=2023588，获取详细信息。
+  fileOper.cpp
+  main.cpp
+  osWriter.cpp
+E:\virtualbox\vmshare\liunux\LiunuxOS_C\LiunuxSetup\osWriter.cpp(56): warning C4244: “=”: 从“unsigned __int64”转换到“unsigned int”，可能丢失数据
+E:\virtualbox\vmshare\liunux\LiunuxOS_C\LiunuxSetup\osWriter.cpp(117): warning C4018: “>=”: 有符号/无符号不匹配
+  sectorRW.cpp
+  正在生成代码...
   LiunuxSetup.vcxproj -> E:\virtualbox\vmshare\liunux\LiunuxOS_C\Release\LiunuxSetup.exe

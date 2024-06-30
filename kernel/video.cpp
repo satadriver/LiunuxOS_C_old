@@ -55,8 +55,6 @@ int __getVideoParams(LPVESAINFORMATION vesaInfo, DWORD fontbase) {
 	// 		gVesaInfo.PhyBasePtr = (svgaregs[0] & 0xfffffff0);
 	// 	}
 
-
-
 	gFontBase = fontbase;
 	gBytesPerPixel = vesaInfo->BitsPerPixel >> 3;
 	gBytesPerLine = vesaInfo->BytesPerScanLine;

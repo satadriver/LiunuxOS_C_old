@@ -267,7 +267,7 @@ DWORD getBaseFromEip(DWORD eip);
 int getPeType(DWORD data);
 int setImageBase(char* chBaseAddress);
 DWORD getImageBase(char* pFileBuff);
-DWORD getSizeOfImage(char* pFileBuff);
+
 
 DWORD getType(DWORD chBaseAddress);
 
@@ -276,7 +276,7 @@ unsigned char * getRvaSectionName(DWORD module, DWORD rva);
 
 void __kRemoveModule(char * filename);
 DWORD __kGetModule(char * filename);
-void __kKeepModule(char * filename, DWORD addr);
+void __kStoreModule(char * filename, DWORD addr);
 
 DWORD getAddrFromOrd(DWORD module, DWORD ord);
 
@@ -291,6 +291,8 @@ extern "C" __declspec(dllexport) DWORD gDllLoadBase;
 
 extern "C" __declspec(dllexport)DWORD getAddrFromName(DWORD module, const char * funname);
 
+extern "C" __declspec(dllexport) DWORD getSizeOfImage(char* pFileBuff);
+
 
 extern "C" __declspec(dllexport) DWORD loadLibFile(char * dllname);
 extern "C" __declspec(dllexport) DWORD loadLibFun(char * dllname, char * funcname);
@@ -303,7 +305,9 @@ extern "C" __declspec(dllexport) DWORD memLoadDll(char* filebuf, char* addr);
 #else
 extern "C" __declspec(dllimport) DWORD gDllLoadBase;
 
-extern "C" __declspec(dllexport)DWORD getAddrFromName(DWORD module, const char * funname);
+extern "C" __declspec(dllimport) DWORD getAddrFromName(DWORD module, const char * funname);
+
+extern "C" __declspec(dllimport) DWORD getSizeOfImage(char* pFileBuff);
 
 extern "C" __declspec(dllimport) DWORD loadLibFile(char * dllname);
 extern "C" __declspec(dllimport) DWORD loadLibFun(char * dllname, char * funcname);

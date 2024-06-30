@@ -92,11 +92,19 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 	char szout[1024];
 
-	DWORD imagesize = getSizeOfImage((char*)filedata);
-	DWORD alignsize = 0;
+	tss->tss.trap = 1;
+	tss->tss.ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
+
+	tss->tss.iomapOffset = 136;
+	tss->tss.iomapEnd = 0xff;
+	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
+	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
+
 	tss->vaddr = USER_SPACE_START;
 	tss->vasize = 0;
 	DWORD vaddr = tss->vaddr + tss->vasize;
+	DWORD imagesize = getSizeOfImage((char*)filedata);
+	DWORD alignsize = 0;
 	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize,pid, vaddr);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
@@ -108,11 +116,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	tss->moduleaddr = pemap;
 	tss->moduleLinearAddr = USER_SPACE_START;
 
-	tss->tss.trap = 1;
-
-	tss->tss.ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
-
-	//__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->va);
+	//__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->vaddr);
 
 	mapFile((char*)filedata, (char*)pemap);
 
@@ -135,35 +139,33 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	else {
 		entry = getEntry((char*)pemap) + USER_SPACE_START;
 	}
-	tss->tss.eip = entry;
 
-	relocTableV((char*)pemap, USER_SPACE_START);
-
+#ifdef DISABLE_PAGE_REDIRECTION
+	tss->tss.eip = entry - USER_SPACE_START + pemap;
+	relocTableV((char*)pemap, pemap);
 	importTable((DWORD)pemap);
-
+	setImageBaseV((char*)pemap, pemap);
+#else
+	tss->tss.eip = entry;
+	relocTableV((char*)pemap, USER_SPACE_START);
+	importTable((DWORD)pemap);
 	setImageBaseV((char*)pemap, USER_SPACE_START);
+#endif
 
 	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
 	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
 	if (level & 3)
 	{
-		copyPdeTables(0, MEMMORY_ALLOC_BASE, (DWORD*)tss->tss.cr3);
+		//copyPdeTables(0, USER_SPACE_START, (DWORD*)tss->tss.cr3);
 	}
 	else {
-		copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
+		//copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
 	}
 	copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
-	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
 
-	/*
-	tss->tss.cr3 = mapCodeToLinear((DWORD)pemap,level);
-	if (tss->tss.cr3 == 0)
-	{
-		clearCr3((DWORD*)tss->tss.cr3);
-		__kFreeProcess(pid);
-		tss->status = TASK_OVER;
-		return FALSE;
-	}*/
+#ifndef DISABLE_PAGE_REDIRECTION
+	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
+#endif
 
 	DWORD syslevel = level & 3;
 	tss->level = syslevel;
@@ -183,7 +185,6 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	//²»ÓÃÓ³Éäµ½cr3
 	tss->tss.esp0 = TASKS_STACK0_BASE + (pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
@@ -207,7 +208,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
+#ifndef DISABLE_PAGE_REDIRECTION
 		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (result == FALSE)
 		{
@@ -215,7 +216,12 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
+		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#else
+		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#endif
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE  - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
 #ifdef TASK_SINGLE_TSS
@@ -228,10 +234,9 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		//tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 		//tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 #else
-		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
-
 		heapsize = KTASK_STACK_SIZE;
 	}
 	else {
@@ -249,7 +254,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
+#ifndef DISABLE_PAGE_REDIRECTION
 		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (result == FALSE)
 		{
@@ -257,11 +262,13 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-
-		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
-
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#else
+		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+#endif
+		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
 #ifdef TASK_SINGLE_TSS
 		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
@@ -278,22 +285,24 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		tss->tss.ebp = (DWORD)ret3;
 		tss->tss.ss = KERNEL_MODE_STACK;
 #else
+		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
 
 		heapsize = UTASK_STACK_SIZE;
 	}
 	
 	tss->vasize += espsize;
-
 	vaddr = tss->vaddr + tss->vasize;
 
-	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, pid, vaddr);
-	
+	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, pid, vaddr);	
+#ifndef DISABLE_PAGE_REDIRECTION
 	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
-
 	tss->heapbase = vaddr;
+#else
+	tss->heapbase = heapbase;
+#endif
 	tss->heapsize = heapsize;
-
 	tss->vasize += heapsize;
 	
 	params->terminate = (DWORD)__terminateProcess;
@@ -323,9 +332,8 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 
-// 	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",
-// 		getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
-// 	__drawGraphChars((unsigned char*)szout, 0);
+	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",
+	//getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
 
 	addTaskList(tss->tid);
 

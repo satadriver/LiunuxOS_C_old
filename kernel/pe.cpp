@@ -8,7 +8,7 @@
 #include "task.h"
 #include "malloc.h"
 
-
+#include "kernel.h"
 
 
 
@@ -324,9 +324,13 @@ DWORD memLoadDll(char* filedata, char* addr) {
 
 void initDll() {
 
-	__kKeepModule(KERNEL_DLL_MODULE_NAME, KERNEL_DLL_BASE);
+	DATALOADERINFO* dl = (DATALOADERINFO*)gKernelData;
+	int ms = dl->_maindllSecCnt * BYTES_PER_SECTOR;
+	__memcpy((char*)MAIN_DLL_SOURCE_BASE, (char*)VSMAINDLL_LOAD_ADDRESS, ms);
 
-	memLoadDll((char*)VSMAINDLL_LOAD_ADDRESS, (char*)MAIN_DLL_BASE);
+	__kStoreModule(KERNEL_DLL_MODULE_NAME, KERNEL_DLL_BASE);
+
+	memLoadDll((char*)MAIN_DLL_SOURCE_BASE, (char*)MAIN_DLL_BASE);
 }
 
 
@@ -360,7 +364,7 @@ DWORD loadLibFile(char * dllname) {
 			importTable((DWORD)dllptr);
 			relocTable((char*)dllptr);
 
-			__kKeepModule(dllname, (DWORD)dllptr);
+			__kStoreModule(dllname, (DWORD)dllptr);
 
 			__kFree((DWORD)data);
 
@@ -452,12 +456,12 @@ DWORD __kGetModule(char * filename) {
 }
 
 
-void __kKeepModule(char * filename, DWORD addr) {
+void __kStoreModule(char * filename, DWORD addr) {
 	LPDLLMODULEINFO module = (LPDLLMODULEINFO)LIB_INFO_BASE;
 	int size = LIB_INFO_SIZE / sizeof(DLLMODULEINFO);
 	for (int i = 0; i < size; i++)
 	{
-		if (  (module[i].addr == addr) && (module[i].name[0]) && (__strcmp(module[i].name,filename)==0) )
+		if ( (module[i].addr == addr) && (module[i].name[0]) && (__strcmp(module[i].name,filename)==0) )
 		{
 			return;
 		}

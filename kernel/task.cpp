@@ -125,7 +125,7 @@ int __initTask() {
 	process0->status = TASK_RUN;
 	process0->vaddr = KERNEL_DLL_BASE;
 	process0->vasize = 0;
-	process0->espbase = KERNEL_TASK_STACK_BASE;
+	process0->espbase = KERNEL_TASK_STACK_TOP;
 
 	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
 
@@ -211,7 +211,7 @@ int __createDosInFileTask(DWORD addr, char * filename) {
 	{
 		return 0;
 	}
-	return __kCreateProcess(addr,0x10000, filename, filename, DOS_PROCESS_RUNCODE | 3, 0);
+	return __kCreateProcess(addr,0x1000, filename, filename, DOS_PROCESS_RUNCODE | 3, 0);
 }
 
 
@@ -397,9 +397,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs)
 // 		}
 // 	}
 
-
 	TASK_LIST_ENTRY * prev = gTasksListPtr;
-
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
 	do
 	{
@@ -425,14 +423,9 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs)
 				break;
 			}
 		}
-	} while (1);
+	} while (TRUE);
 	
 	gTasksListPtr = (TASK_LIST_ENTRY*)next;
-
-	if (prev->process->tid == gTasksListPtr->process->tid)
-	{
-		//return 0;
-	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -455,16 +448,9 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs)
 // 		lldt ax
 // 	}
 
-	//if (prev->process->status == TASK_RUN && process->status == TASK_RUN)
-	{
-		process->counter++;
-		__memcpy((char*)(tss + prev->process->tid), (char*)process, sizeof(PROCESS_INFO));
-	}
-	
-	//if (gTasksListPtr->process->status == TASK_RUN)
-	{
-		__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
-	}
+	process->counter++;
+	__memcpy((char*)(tss + prev->process->tid), (char*)process, sizeof(PROCESS_INFO));
+	__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
 	
 	//tasktest();
 

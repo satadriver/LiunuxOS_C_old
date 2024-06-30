@@ -243,7 +243,7 @@ int sysenterInit(DWORD entryaddr) {
 
 	writemsr(0x174, csseg, high);
 
-	DWORD esp0 = SYSCALL_STACK0 - STACK_TOP_DUMMY;
+	DWORD esp0 = SYSCALL_STACK0_TOP;
 
 	writemsr(0x175, esp0, high);
 

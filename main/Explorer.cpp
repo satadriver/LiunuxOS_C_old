@@ -109,7 +109,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("__kConsole") == FALSE)
 			{
-				__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kConsole", 3, 0);
+				int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kConsole", 3, 0);
 			}
 			continue;
 		}
@@ -190,7 +191,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = UNKNOWN_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrHD");
 
-					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
 
@@ -200,8 +203,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					taskcmd.cmd = CDROM_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrISO");
-
-					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
 
@@ -211,8 +214,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					taskcmd.cmd = FLOPPY_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrFllopy");
-
-					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
 		}

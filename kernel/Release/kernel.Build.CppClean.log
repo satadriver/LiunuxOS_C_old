@@ -1,4 +1,4 @@
-e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\vc140.pdb
+e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\vc141.pdb
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\hpet.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\gdi.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\floppy.obj
@@ -10,7 +10,7 @@ e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\fat32.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\ext.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\exception.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\elf.obj
-e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\dosprocess.obj
+e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\processdos.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\descriptor.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\debugger.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\coprocessor.obj
@@ -50,7 +50,7 @@ e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\systemtimer.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\system.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\speaker.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\sbplay.obj
-e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\slab.obj
+e:\virtualbox\vmshare\liunux\liunuxos_c\kernel\release\malloc.obj
 e:\virtualbox\vmshare\liunux\liunuxos_c\release\kernel.lib
 e:\virtualbox\vmshare\liunux\liunuxos_c\release\kernel.exp
 e:\virtualbox\vmshare\liunux\liunuxos_c\release\kernel.dll

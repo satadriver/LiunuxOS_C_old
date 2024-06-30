@@ -133,9 +133,10 @@ int __kAddCmosTimer(DWORD addr,DWORD delay,DWORD param1,DWORD param2,DWORD param
 		return -1;
 	}
 
-//  	char szout[1024];
-// 	__printf(szout, "__kAddCmosTimer addr:%x,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", addr,delay,param1,param2,param3,param4);
-// 	__drawGraphChars((unsigned char*)szout, 0);
+//char szout[1024];
+//__printf(szout, "__kAddCmosTimer addr:%x,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
+// addr,delay,param1,param2,param3,param4);
+
 
 	DWORD * lptickcnt = (DWORD*)CMOS_TICK_COUNT;
 

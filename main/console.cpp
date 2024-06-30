@@ -52,7 +52,9 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			//DWORD addr = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
 
-			return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+
+			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (__memcmp(filename + fnlen - 4, ".jpg", 4) == 0 || __memcmp(filename + fnlen - 5, ".jpeg", 5) == 0)
 		{
@@ -60,7 +62,8 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			taskcmd.cmd = SHOW_WINDOW_JPEG;
 			//DWORD addr = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
-			return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (isTxtFile(filename, fnlen))
 		{
@@ -68,7 +71,8 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			taskcmd.cmd = SHOW_WINDOW_TXT;
 			//DWORD addr = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
-			return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (__memcmp(filename + fnlen - 4, ".zip", 4) == 0 || __memcmp(filename + fnlen - 4, ".apk", 4) == 0)
 		{
@@ -170,8 +174,9 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		if (paramcnt >= 2 && __strcmp(params[1], "paint") == 0)
 		{
 			__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
+			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
-			return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kPaint", 3, (DWORD)&taskcmd);
+			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kPaint", 3, (DWORD)&taskcmd);
 		}
 	}
 	else if (__strcmp(params[0], "alloc") == 0)
@@ -243,7 +248,8 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		__strcpy(taskcmd.filename, params[0]);
 		taskcmd.cmd = SHOW_TEST_WINDOW;
 
-		return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 	}
 	else if (__strcmp(params[0], "tickcnt") == 0)
 	{
