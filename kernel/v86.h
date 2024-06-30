@@ -1,4 +1,4 @@
 #pragma once
 
 
-void V86Proc();
+void v86VideoMode(int mode);

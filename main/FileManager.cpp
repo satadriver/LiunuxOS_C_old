@@ -204,8 +204,7 @@ int doFileAction(LPFILEBROWSER files) {
 
 
 
-//文件大小，属性必须统一
-//文件夹大小统一为0，文件夹属性都是0x10,文件属性都是0x20
+//文件大小，属性必须统一 文件夹大小统一为0，文件夹属性都是0x10,文件属性都是0x20
 int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
 	char szout[1024];
@@ -395,6 +394,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 				}
 				else if (asc == 0x1b)
 				{
+					__printf(szout,"file manager quit!\r\n");
 					__kFree((DWORD)files);
 
 					restoreFileManager(&window);

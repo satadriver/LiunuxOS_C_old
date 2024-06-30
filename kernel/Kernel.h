@@ -18,7 +18,7 @@ extern "C" __declspec(dllexport)  LPSYSDESCRIPTOR glpIdt;
 
 extern "C" __declspec(dllexport)  DWORD gV86VMIEntry;
 
-extern "C" __declspec(dllexport)  DWORD gV86VMLeave;
+extern "C" __declspec(dllexport)  DWORD gV86VMParam;
 
 extern "C" __declspec(dllexport)  DWORD gKernel16;
 extern "C" __declspec(dllexport)  DWORD gKernel32;
@@ -38,7 +38,7 @@ extern "C" __declspec(dllimport)  LPSYSDESCRIPTOR glpIdt;
 
 extern "C" __declspec(dllimport)  DWORD gV86VMIEntry;
 
-extern "C" __declspec(dllimport)  DWORD gV86VMLeave;
+extern "C" __declspec(dllimport)  DWORD gV86VMParam;
 
 extern "C" __declspec(dllimport)  DWORD gKernel16;
 extern "C" __declspec(dllimport)  DWORD gKernel32;

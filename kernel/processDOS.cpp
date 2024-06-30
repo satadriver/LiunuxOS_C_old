@@ -155,7 +155,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 		tss->tss.esp = tss->tss.esp - sizeof(TASKDOSPARAMS);
 		LPTASKDOSPARAMS params = (LPTASKDOSPARAMS)(tss->tss.esp + (tss->tss.ss << 4));
-		params->terminate = (DWORD)gV86VMLeave;
+		params->terminate = (DWORD)0;
 		params->pid = pid;						//param1:pid
 		__strcpy(params->szFileName, filename);
 		params->filename = params->szFileName;		//param2:filename
