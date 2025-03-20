@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../FileManager.h"
-#include "../file.h"
+#include "../FileBrowser.h"
+#include "file.h"
 
-int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father);
+int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, unsigned __int64 father);

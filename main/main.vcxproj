@@ -22,7 +22,7 @@
     <ProjectGuid>{E49EDBED-49A9-4C0E-B435-26759D691389}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>main</RootNamespace>
-    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -70,29 +70,29 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <TargetExt>.exe</TargetExt>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../kernel;../kernel/def.h;../kernel/;$(IncludePath)</IncludePath>
+    <IncludePath>../kernel;$(IncludePath)</IncludePath>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -102,10 +102,25 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Gs8192 %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,10 +131,25 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Gs8192 %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,14 +167,19 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalOptions>/Gs8192 %(AdditionalOptions)</AdditionalOptions>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,60 +192,65 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Gs8192 %(AdditionalOptions)</AdditionalOptions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ChinesePoem.cpp" />
+    <ClCompile Include="clock.cpp" />
+    <ClCompile Include="cmd.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="explorer.cpp" />
     <ClCompile Include="fat12\fat12.cpp" />
     <ClCompile Include="fat32\fat32dirs.cpp" />
-    <ClCompile Include="fileManager.cpp" />
-    <ClCompile Include="fileManagerWindow.cpp" />
+    <ClCompile Include="fileBrowser.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="gdi\jpeg.cpp" />
     <ClCompile Include="ios9660\ios9660.cpp" />
-    <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="NTFS\ntfsDirs.cpp" />
     <ClCompile Include="paint.cpp" />
-    <ClCompile Include="taskBar.cpp" />
-    <ClCompile Include="windowClass.cpp" />
-    <ClCompile Include="sysregs.cpp" />
-    <ClCompile Include="userUtils.cpp" />
+    <ClCompile Include="fileWindow.cpp" />
+    <ClCompile Include="mainUtils.cpp" />
+    <ClCompile Include="guiHelper.cpp" />
+    <ClCompile Include="TestWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ChinesePoem.h" />
+    <ClInclude Include="clock.h" />
+    <ClInclude Include="cmd.h" />
     <ClInclude Include="console.h" />
-    <ClInclude Include="Explorer.h" />
+    <ClInclude Include="explorer.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="fat12\fat12.h" />
-    <ClInclude Include="fat32\FAT32.h" />
     <ClInclude Include="fat32\fat32dirs.h" />
-    <ClInclude Include="fat32\Fat32File.h" />
-    <ClInclude Include="fat32\FAT32Utils.h" />
-    <ClInclude Include="fat32\FileUtils.h" />
-    <ClInclude Include="fileManager.h" />
-    <ClInclude Include="fileManagerWindow.h" />
+    <ClInclude Include="fileBrowser.h" />
     <ClInclude Include="ios9660\ios9660.h" />
     <ClInclude Include="paint.h" />
-    <ClInclude Include="taskBar.h" />
-    <ClInclude Include="windowClass.h" />
+    <ClInclude Include="fileWindow.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="gdi\jpeg.h" />
-    <ClInclude Include="machine.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="NTFS\ntfs.h" />
     <ClInclude Include="NTFS\ntfsDirs.h" />
-    <ClInclude Include="NTFS\ntfsFile.h" />
-    <ClInclude Include="soundBlaster\sbPlay.h" />
-    <ClInclude Include="sysregs.h" />
-    <ClInclude Include="userUtils.h" />
+    <ClInclude Include="mainUtils.h" />
+    <ClInclude Include="guiHelper.h" />
+    <ClInclude Include="TestWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="main.rc" />

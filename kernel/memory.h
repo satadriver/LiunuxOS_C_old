@@ -7,13 +7,12 @@
 #define PAGE_TABLE_NOTEXIST			-1
 
 
-DWORD mapCodeToLinear(DWORD pedata,int level);
 
-int clearCr3(DWORD *cr3);
+int clearCR3(DWORD *cr3);
 
-DWORD copyPdeTables(DWORD phyaddr, DWORD size, DWORD *tables);
+DWORD copyKernelCR3(DWORD phyaddr, DWORD size, DWORD *cr3);
 
-DWORD mapPhyToLinear(DWORD linearaddr, DWORD phyaddr, DWORD size, DWORD * cr3);
+DWORD mapPhyToLinear(DWORD linearaddr, DWORD phyaddr, DWORD size, DWORD * cr3,int tag);
 
 DWORD linear2phy(DWORD linear);
 

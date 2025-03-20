@@ -1,5 +1,5 @@
 #include "def.h"
-
+#include "atapi.h"
 #include "Explorer.h"
 #include "console.h"
 #include "video.h"
@@ -8,18 +8,18 @@
 #include "task.h"
 #include "graph.h"
 #include "soundBlaster/sbPlay.h"
-#include "screenUtils.h"
+#include "floppy.h"
 #include "Utils.h"
 #include "menu.h"
-#include "windowclass.h"
+
 #include "Pe.h"
 #include "window.h"
-#include "system.h"
-#include "satadriver.h"
-#include "UserUtils.h"
+#include "ProcessDos.h"
+#include "ata.h"
+
 #include "Kernel.h"
-#include "sysregs.h"
-#include "WindowClass.h"
+#include "mainUtils.h"
+#include "coprocessor.h"
 #include "Utils.h"
 #include "paint.h"
 #include "malloc.h"
@@ -28,7 +28,7 @@
 #include "pci.h"
 #include "window.h"
 #include "keyboard.h"
-#include "FileManager.h"
+#include "FileBrowser.h"
 #include "descriptor.h"
 #include "debugger.h"
 #include "gdi.h"
@@ -36,87 +36,97 @@
 #include "hept.h"
 #include "cmosAlarm.h"
 #include "elf.h"
+#include "guihelper.h"
+
+#define EXPLORER_TASKNAME			"__kExplorer"
+
+#define ALARMER_SECOND_INTERVAL		60
+
+
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
 
 	char szout[1024];
+
+	//initWindowList();
+
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
 
-
-	initWindowList();
+	//v86Process(0x4f02, 0, 0, 0x4112, 0, 0, 0, 0, 0x10);
 
 	WINDOWCLASS window;
-	initDesktopWindow(&window, "__deskTop", tid);
+	initDesktopWindow(&window, EXPLORER_TASKNAME, tid);
 
 	WINDOWCLASS taskbar;
 	initTaskbarWindow(&taskbar, filename, tid);
 
-	FILEMAP computer;
-	initBigClickItem(&computer, "My Computer", tid,1, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight);
+	FILEICON computer;
+	initIcon(&computer, "My Computer", tid,1, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight);
 
-	FILEMAP atapi;
-	initBigClickItem(&atapi, "CD-ROM", tid,2, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
+	FILEICON atapi;
+	initIcon(&atapi, "CD-ROM", tid,2, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 
-	FILEMAP floppy;
-	initBigClickItem(&floppy, "Floppy", tid,3, gVideoWidth - 2 * gBigFolderWidth,
+	FILEICON floppy;
+	initIcon(&floppy, "Floppy", tid,3, gVideoWidth - 2 * gBigFolderWidth,
 		gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 
-	__kDrawWindowsMenu();
-
 	RIGHTMENU menu;
-	initWindowsRightMenu(&menu, tid);
+	initRightMenu(&menu, tid);
+
+	__initMouse(gVideoWidth, gVideoHeight);
 
 	char cputype[1024];
 	getCpuType(cputype);
 	char cpuinfo[1024];
 	getCpuInfo(cpuinfo);
-	__printf(szout, "CPU MODEL:%s,details:%s,video height:%d,width:%d,pixel:%d\n", cputype, cpuinfo, gVideoHeight, gVideoWidth, gBytesPerPixel);
-
+	__printf(szout, "CPU MODEL:%s,details:%s,SSE:%d,video height:%d,width:%d,pixel:%d\n", 
+		cputype, cpuinfo,isSSE(), gVideoHeight, gVideoWidth, gBytesPerPixel);
 
 	showPciDevs();
 
-	__kdBreakPoint();
+	__enableBreakPoint();
 
-	
-	__kAddCmosAlarm(30, (DWORD)__doAlarmTask, 0);
+	enableSingleStep();
 
-	//initEfer();
+	disableSingleStep();
 
-	getRCBA();
+	enableOverflow();
 
-	sysenterEntry(0, 0);
+	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
+
+	sysEntryProc();
 
 	callgateEntry(0, 0);
 
-	repeatDrawCCFontString();
+	displayCCPoem();
+
+	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
-
-	//__drawLine(100, 100, 200, 200, 0)
-
-	//__diamond(400, 400, 200, 7, 0);
 
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
 	while (1)
 	{
-		unsigned int ck = __kGetKbd(window.id);
-		//unsigned int ck = __getchar(window.id);
-		unsigned int asc = ck & 0xff;
-		if (asc == VK_F1)
+		unsigned int ck = __kGetKbd(window.id) & 0xff;
+		if (ck == VK_F1)
 		{
 			if (__findProcessFileName("__kConsole") == FALSE)
-			{
-				int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kConsole", 3, 0);
+			{			
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
 			}
 			continue;
 		}
-		else if (asc == VK_F2)
+		else if (ck == VK_F2)
 		{
-			if (__findProcessFileName("__kLogWatch") == FALSE)
+			//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+			continue;
+		}
+		else if (ck == VK_F3)
+		{
+			if (__findProcessFileName("__kClock") == FALSE)
 			{
 				TASKCMDPARAMS cmd;
 				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
@@ -124,15 +134,27 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				cmd.addr = LOG_BUFFER_BASE;
 				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
 
-				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
-				return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kLogWatch");
-				//__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kLogWatch", 3, 0);
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
 			}
 			continue;
 		}
-		else if (asc == VK_F3)
-		{
-			__createDosInFileTask(gV86VMIEntry, "V86VMIEntry");
+		else if (ck == VK_F4) {
+			if (__findProcessFileName("__kTestWindow") == FALSE)
+			{
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kTestWindow");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kTestWindow", 3, 0);
+				}
+			}
 			continue;
 		}
 
@@ -143,7 +165,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (menu.action)
 			{
-				__restoreMenu(&menu);
+				menu.action = 0;
+
+				__restoreRightMenu(&menu);
 
 				if ((mouseinfo.x > menu.pos.x) && (mouseinfo.x < menu.pos.x + menu.width))
 				{
@@ -156,32 +180,31 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 							int cnt = menu.paramcnt[funcno];
 
-							int stacksize = cnt * 4;
+							int paramSize = cnt * sizeof(DWORD);
 
-							DWORD * thisparams = (DWORD*)&menu.funcparams[funcno][0];
+							DWORD * params = (DWORD*)&menu.funcparams[funcno][0];
 
 							__asm {
 								mov ecx, cnt
 								cmp ecx, 0
-								jz _callfunc
-								mov esi, thisparams
-								add esi, stacksize
-								sub esi,4
-								_params :
+								jz __callfunc
+								mov esi, params
+								add esi, paramSize
+								__copyParams :
+								sub esi, 4
 								mov eax, [esi]
 								push eax
-								sub esi, 4
-								loop _params
-								_callfunc :
+								loop __copyParams
+								__callfunc :
 								mov eax, func
 								call eax
-								add esp, stacksize
+								add esp, paramSize
 							}
 						}
 					}
 				}
 
-				menu.action = 0;
+				
 			}
 
 			if (mouseinfo.x >= computer.pos.x && mouseinfo.x < computer.pos.x + computer.frameSize + computer.width)
@@ -191,9 +214,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = UNKNOWN_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrHD");
 
-					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
 
@@ -203,8 +226,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					taskcmd.cmd = CDROM_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrISO");
-					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 				}
 			}
 
@@ -214,10 +238,18 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					taskcmd.cmd = FLOPPY_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrFllopy");
-					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
+
+			if (mouseinfo.x >= 0  && mouseinfo.x < gVideoWidth - TASKBAR_HEIGHT)
+			{
+				if ((mouseinfo.y >= gWindowHeight) && mouseinfo.y < gVideoHeight)
+				{
+					ret = TaskbarOnClick(&window);
+				}
+			}		
 		}
 		else if (mouseinfo.status & 2)	//right click
 		{
@@ -245,12 +277,21 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 }
 
 
-DWORD isDesktop() {
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	if (__strcmp(tss->filename,"Explorer.exe") == 0)
+int TaskbarOnClick(WINDOWCLASS *window) {
+	return 0;
+}
+
+
+DWORD isDesktop(WINDOWCLASS * window) {
+	int pid = window->pid;
+
+	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	
+	if (__strcmp(tssbase[pid].funcname, EXPLORER_TASKNAME) == 0)
 	{
 		return TRUE;
 	}
 
 	return FALSE;
 }
+

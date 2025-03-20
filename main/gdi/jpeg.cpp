@@ -2,11 +2,11 @@
 //---yk--- add
 //#include "memory.h"
 //#include "math.h"
-#include "../def.h"
-#include "../Utils.h"
+#include "def.h"
+#include "Utils.h"
 #include "jpeg.h"
 #include "../graph.h"
-#include "../gdi.h"
+#include "gdi.h"
 
 #define M_SOF0  0xc0
 #define M_DHT   0xc4
@@ -241,16 +241,16 @@ void showerror(int funcret)
 	switch (funcret)
 	{
 	case FUNC_MEMORY_ERROR:
-		__drawGraphChars((unsigned char*)"Error alloc memory\n!",0);
+		__drawGraphChars(( char*)"Error alloc memory\n!",0);
 		break;
 	case FUNC_FILE_ERROR:
-		__drawGraphChars((unsigned char*)"File not found!\n",0);
+		__drawGraphChars(( char*)"File not found!\n",0);
 		break;
 	case FUNC_FORMAT_ERROR:
-		__drawGraphChars((unsigned char*)"File format error!\n",0);
+		__drawGraphChars(( char*)"File format error!\n",0);
 		break;
 	default:
-		__drawGraphChars((unsigned char*)"gpeg error\n", 0);
+		__drawGraphChars(( char*)"gpeg error\n", 0);
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -990,7 +990,7 @@ void idctcol(int * blk)
 }
 
 
-
+#ifdef _DEBUG
 #include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -999,7 +999,7 @@ int testjpeg()
 {
 	FILE*      hfjpg;
 
-	fopen_s(&hfjpg, "D:\\BaiduNetdiskDownload\\jpg2bmp\\jpg2bmp\\0.jpeg", "rb");
+	fopen_s(&hfjpg, "test.jpeg", "rb");
 
 	//get jpg file length
 	fseek(hfjpg, 0L, SEEK_END);
@@ -1026,7 +1026,7 @@ int testjpeg()
 	DWORD dwcost = clock() - time;
 
 	FILE*              hfbmp;
-	fopen_s(&hfbmp, "jpeg2-bmp.bmp", "wb");
+	fopen_s(&hfbmp, "test.bmp", "wb");
 	//fwrite((LPSTR)&bmpfilehdr, sizeof(BITMAPFILEHEADER), 1, hfbmp);
 	fwrite((LPSTR)bmpdata, sizeof(char), bmpdatasize, hfbmp);
 	fclose(hfbmp);
@@ -1037,3 +1037,4 @@ int testjpeg()
 
 	return 0;
 }
+#endif

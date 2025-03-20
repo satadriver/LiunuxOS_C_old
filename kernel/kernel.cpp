@@ -7,8 +7,7 @@
 #include "process.h"
 #include "task.h"
 #include "Pe.h"
-#include "satadriver.h"
-#include "sectorReader.h"
+#include "ata.h"
 #include "fat32/FAT32.h"
 #include "fat32/fat32file.h" 
 #include "file.h"
@@ -16,10 +15,8 @@
 #include "NTFS/ntfsFile.h"
 #include "pci.h"
 #include "speaker.h"
-#include "system.h"
-#include "screenUtils.h"
 #include "cmosAlarm.h"
-#include "rs232.h"
+#include "serialUART.h"
 #include "floppy.h"
 #include "malloc.h"
 #include "page.h"
@@ -31,141 +28,130 @@
 #include "descriptor.h"
 #include "elf.h"
 #include "page.h"
+#include "device.h"
+#include "core.h"
+#include "cmosPeriodTimer.h"
+#include "apic.h"
+#include "acpi.h"
+#include "window.h"
+#include "VMM.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
 //#pragma comment(linker, "/merge:.data=.text")
-//#pragma comment(linker, "/merge:.rdata=.text")
 
-LPSYSDESCRIPTOR glpCallGate = 0;
-LPSEGDESCRIPTOR glpLdt = 0;
-LPSEGDESCRIPTOR glpGdt = 0;
-LPSYSDESCRIPTOR glpIdt = 0;
+//https://www.cnblogs.com/ck1020/p/6115200.html
+
+#pragma comment(linker, "/STACK:0x100000")
+
 DWORD gV86VMIEntry = 0;
-DWORD gV86VMParam = 0;
-DWORD gKernel16;
-DWORD gKernel32;
-DWORD gKernelData;
+DWORD gV86VMISize = 0;
+DWORD gV86IntProc = 0;
+DWORD gKernel16 = 0;
+DWORD gKernel32 = 0;
+DWORD gKernelData = 0;
+DWORD gVideoMode = 0;
 
 
-
-void getGdtIdt() {
-	DESCRIPTOR_REG gdt;
-	DESCRIPTOR_REG idt;
-	__asm {
-		lea eax,gdt
-		sgdt [eax]
-
-		lea eax,idt
-		sidt [eax]
-	}
-
-	glpGdt = (LPSEGDESCRIPTOR)gdt.addr;
-
-	glpIdt = (LPSYSDESCRIPTOR)idt.addr;
-
-	int gdtcnt = (gdt.size + 1 ) >> 3;
-	for (int i = 1;i < gdtcnt;i ++)
-	{
-		if (glpGdt[i].attr == 0xe2 || glpGdt[i].attr == 0x82)
-		{
-			glpLdt = &glpGdt[i];
-			initLdt(glpLdt);
-			break;
-		}else if (glpGdt[i].attr == 0xec || glpGdt[i].attr == 0x8c)
-		{
-			glpCallGate = (LPSYSDESCRIPTOR)&glpGdt[i];
-			initCallGate((LPSYSDESCRIPTOR)&glpGdt[i]);
-			break;
-		}
-	}
-}
-
-
-//c++函数的导出函数对应函数声明的顺序，而不是函数体，函数体的参数一一对应于声明中的顺序
-int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase,DWORD v86Proc,DWORD v86param ,DWORD kerneldata,DWORD kernel16,DWORD kernel32) {
+int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, int v86ProcessLen,
+	DWORD v86IntBase, DWORD kerneldata, DWORD kernel16, DWORD kernel32) {
 
 	int ret = 0;
-	
-	gV86VMIEntry = v86Proc;
-	gV86VMParam = v86param;
+
+	gVideoMode = *(WORD*)((char*)vesa - 2);
+
+	gV86VMIEntry = v86ProcessBase;
+
+	gV86VMISize = v86ProcessLen + 1024;
+
+	gV86IntProc = v86IntBase;
+
 	gKernelData = kerneldata;
 	gKernel16 = kernel16;
 	gKernel32 = kernel32;
 
-	//must be first to prepare for showing
-	__getVideoParams(vesa, fontbase);
+	__initVideo(vesa, fontbase);
 
 	char szout[1024];
 
-	getGdtIdt();
+	initGdt();
+	initIDT();
+
+	initDevices();
 
 	initMemory();
 
-	initPage();
-
-	enablePage();
+	initPaging();
 
 	__initTask();
 
 	initDll();
 
-	sysenterEntry(0,0);
-
-	initRS232Com1();
-	initRS232Com2();
-
 	initEfer();
+
+	initACPI();
 
 	initCoprocessor();
 
-	__asm {
-		sti
-	}
+	initTimer();
 
-	__printf(szout, "Hello world of Liunux!\r\n");
+	sysEntryInit((DWORD)sysEntry);
 
-#ifndef TASK_SINGLE_TSS
-	//__createDosInFileTask(gV86VMIEntry, "V86VMIEntry");
-#endif
-
-// 	TASKCMDPARAMS cmd;
-// 	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
-// 	__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-
-	//logFile("__kernelEntry\n");
-
-	//__rmSectorReader(0, 1, szout, 1024);
-	
-// 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
-// 	if (kernelMain)
-// 	{
-// 		TASKCMDPARAMS cmd;
-// 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
-// 		__kCreateThread((unsigned int)kernelMain,(DWORD)&cmd, "__kKernelMain");
-// 	}
-
-	//must be after running V86VMIEntry and sti
-	initFileSystem();
+	enableVME();
+	enablePCE();
+	enableMCE();
+	enableTSD();
 
 	initDebugger();
 
-// 	floppyInit();
-// 	FloppyReadSector(0, 1, (unsigned char*)FLOPPY_DMA_BUFFER);
+	initWindowList();
 
-// 	ret = loadLibRunFun("c:\\liunux\\main.dll", "__kMainProcess");
- 	
+	__asm {
+		in al, 0x60
+		sti
+	}
 
-	int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+	//BPCodeStart();
 
-	__printf(szout, "__kMainProcess size:%x\n", imagesize);
-	__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize,  "__kExplorer", 3, 0);
+#ifdef VM86_PROCESS_TASK
+	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+#else
+
+#endif
+
+	__printf(szout, "Hello world of Liunux!\r\n");
+
+	ret = StartVirtualTechnology();
+	if (ret) {
+		StopVirtualTechnology();
+	}
+	
+	initFileSystem();
+
+	int imagesize = getSizeOfImage((char*)KERNEL_DLL_SOURCE_BASE);
+	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
+	if (kernelMain)
+	{
+		TASKCMDPARAMS cmd;
+		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
+		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
+	}
+
+	//logFile("__kernelEntry\n");
+	
+	//ret = loadLibRunFun("c:\\liunux\\main.dll", "__kMainProcess");
+
+	//__kGetKbd(0);
 
 	while (1)
 	{
 		if (__findProcessFuncName("__kExplorer") == FALSE)
 		{
+			__printf(szout, "__kCreateProcess __kExplorer before\r\n");
 			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
+			__printf(szout, "__kCreateProcess __kExplorer end\r\n");
 		}
 
 		__asm {
@@ -185,43 +171,48 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
  	char szout[1024];
 	__printf(szout, "__kKernelMain task pid:%x,filename:%s,function name:%s\n", pid, filename,funcname);
 
-// 	unsigned char sendbuf[1024];
-// 	//最大不能超过14字节
-// 	__strcpy((char*)sendbuf, "how are you?");
-// 	ret = sendCom2Data(sendbuf, __strlen("how are you?"));
-// 
-// 	unsigned char recvbuf[1024];
-// 	int recvlen = getCom2Data(recvbuf);
-// 	if (recvlen > 0)
-// 	{
-// 		*(recvbuf + recvlen) = 0;
-// 		
-// 		__printf(szout, "recvbuf data:%s\n", recvbuf);
-// 		__drawGraphChars((unsigned char*)szout, 0);
-// 	}
+	char* str = "Hi,how are you?Fine,thank you, and you ? I'm fine too!";
 
-	//setVideoMode(0x4112);
+	return;
 
-	while (1)
-	{
-		__sleep(1000);
-	}
+ 	ret = sendUARTData((unsigned char*)str, __strlen(str),COM1PORT);
+ 
+ 	unsigned char recvbuf[1024];
+ 	int recvlen = getCom1Data(recvbuf);
+ 	if (recvlen > 0)
+ 	{
+ 		*(recvbuf + recvlen) = 0;
 
-	while (1)
-	{
-		__asm {
-			hlt
-		}
-	}
+ 		__printf(szout, "com recv data:%s\n", recvbuf);
+ 	}
+	return;
 }
 
 
 
-//注意二位数组在内存中的排列和结构
-void mytest() {
+
+
+
+
+
+
+
+
+
+
+#include "servicesProc.h"
+
+#ifdef _DEBUG
+
+
+#include "math.h"
+
+void mytest(LIGHT_ENVIRONMENT  * stack) {
 
 	return;
 }
+
+#endif
 
 #ifdef _USRDLL
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {
@@ -230,7 +221,31 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	mytest();
+	double angle = 0.1 ;
+	for (int i = 0; i < 100; i++) {
+		double dc = __cos(angle);
+		double ds = __sin(angle);
+
+		double v = dc * dc + ds * ds;
+		angle += 0.1;
+		if (i >= 0x100) {
+			break;
+		}
+	}
+
+
+	double das = __asin(__sin(PI*2/3));
+	double dac = __acos(__cos(PI*3/4));
+
+	double adac = PI * 3 / 4;
+
+	double adas = __sin(PI * 2 / 3);
+
+	double res = __sqrt(0.0001);
+
+#ifdef _DEBUG
+	mytest(0);
+#endif
 	return TRUE;
 }
 #endif

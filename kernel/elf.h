@@ -172,7 +172,7 @@ typedef struct {
 //.dynamic 指向Elf32_Dyn
 //.dynsym指向Elf32_sym
 
-//http://www.360doc.com/content/15/1126/20/7377734_516130511.shtml
+
 
 typedef struct {
 	Elf32_SWord d_tag;

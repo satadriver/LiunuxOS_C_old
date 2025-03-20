@@ -12,36 +12,11 @@
 #include "process.h"
 #include "Thread.h"
 #include "memory.h"
+#include "cmosPeriodTimer.h"
+#include "screenProtect.h"
 
+CMOSALARM_PROCESS_LIST gCmosAlarmProc;
 
-
-unsigned char readCmosPort(unsigned char port) {
-	__asm {
-		//in al,70h
-		//and al,80h
-		//or al,port
-
-		mov al,port
-		out 70h,al
-
-		in al,71h
-		movzx eax,al
-	}
-}
-
-void writeCmosPort(unsigned char port, unsigned char value) {
-	__asm {
-		//in al, 70h
-		//and al, 80h
-		//or al, port
-
-		mov al,port
-		out 70h, al
-
-		mov al, value
-		out 71h, al
-	}
-}
 
 int isLeapYear(int year) {
 	int ret = year % 100;
@@ -99,22 +74,22 @@ unsigned short makehalf(unsigned char low, unsigned char high) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-void addCmosAlarmTimer(DWORD interval) {
-	__asm {
-		cli
+void addAlarmTimer() {
+	if (gCmosAlarmProc.addr == 0 || gCmosAlarmProc.interval == 0) {
+		return;
 	}
 	int ret = 0;
 
+	__asm {
+		cli
+	}
+
+	int s = (inportb(0x70) & 0x7f) + 0x0b;
+	outportb(0x70, s);
+	int v = inportb(0x71)|0x80;
+	//outportb(0x70, s);
+	outportb(0x71, v);
+	
 	unsigned char bcentury = readCmosPort(0x32);
 	unsigned char byear = readCmosPort(9);
 	unsigned int cy = ((unsigned int)bcd2b(bcentury) * 100) + (unsigned int)bcd2b(byear);
@@ -143,7 +118,7 @@ void addCmosAlarmTimer(DWORD interval) {
 
 	int carray = 0;
 
-	dstsecond = second + interval;
+	dstsecond = second + gCmosAlarmProc.interval;
 	if (dstsecond >= 60)
 	{
 		dstsecond = dstsecond % 60;
@@ -167,7 +142,7 @@ void addCmosAlarmTimer(DWORD interval) {
 
 				dstday = dstday + carray;
 
-				int daysinmonth = getDayOfMonth(cy, month);
+				unsigned int daysinmonth = getDayOfMonth(cy, month);
 				if (dstday >= daysinmonth)
 				{
 					carray = dstday / daysinmonth + 1;
@@ -185,14 +160,20 @@ void addCmosAlarmTimer(DWORD interval) {
 		}
 	}
 
-	//writeCmosPort(0x0d, b2bcd(dstday));
+	writeCmosPort(0x0d, b2bcd(dstday));		//check if invalid?
 	writeCmosPort(0x05, b2bcd(dsthour));
 	writeCmosPort(0x03, b2bcd(dstmin));
 	writeCmosPort(0x01, b2bcd(dstsecond));
 
-	__asm {
-		sti
-	}
+	outportb(0x70, 0x0b | 0x80);
+	v = inportb(0x71) & 0x7f;
+	outportb(0x70, 0x0b | 0x80);
+	outportb(0x71, v);
+
+	outportb(0x70, 0x0c|0x80);
+	inportb(0x71);
+
+	__asm{sti}
 
 	char szout[1024];
 	__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);
@@ -200,17 +181,16 @@ void addCmosAlarmTimer(DWORD interval) {
 }
 
 
-CMOSALARM_PROCESS_LIST gCmosAlarmProc;
+
 
 
 //from assembly code
-void __kCmosAlarmProc() {
+void __kAlarmTimerProc() {
 
 	char szout[1024];
-	__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
+	//__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
 
-	return ;
-
+	//can only exist one alarm
 	DWORD addr = gCmosAlarmProc.addr;
 	DWORD interval = gCmosAlarmProc.interval;
 	DWORD param = gCmosAlarmProc.param;
@@ -223,36 +203,34 @@ void __kCmosAlarmProc() {
 			call eax
 			add esp, 4
 		}
+		gCmosAlarmProc.addr = 0;
+		gCmosAlarmProc.interval = 0;
+
+		__kAddAlarmTimer(interval, (DWORD)__doAlarmTask, 0);
 	}
 }
 
-int __kAddCmosAlarm( DWORD interval, DWORD linearaddr, DWORD param) {
+int __kAddAlarmTimer( DWORD interval, DWORD linearaddr, DWORD param) {
 
 	if (gCmosAlarmProc.addr == 0 && gCmosAlarmProc.interval == 0)
 	{
-		DWORD addr = linear2phy((DWORD)linearaddr);
-
-		gCmosAlarmProc.addr = addr;
+		gCmosAlarmProc.addr = linearaddr;
 		gCmosAlarmProc.interval = interval;
 		gCmosAlarmProc.param = param;
 
-		addCmosAlarmTimer(interval);
+		addAlarmTimer();
 		return TRUE;
 	}
 
 	return 0;
 }
 
-void __kRemoveCmosAlarm() {
-	__asm {
-		cli
-	}
+void __kRemoveAlarmTimer() {
+
 	gCmosAlarmProc.addr = 0;
 	gCmosAlarmProc.interval = 0;
 	gCmosAlarmProc.param = 0;
-	__asm{
-		sti
-	}
+
 }
 
 
@@ -261,43 +239,9 @@ void __kRemoveCmosAlarm() {
 void __doAlarmTask(DWORD  param) {
 
 	char szout[1024];
-	__printf(szout, "set cmos alarm complete\n");
+	__printf(szout, "__doAlarmTask running\n");
 
-	//return;
-
-	DWORD backsize = gBytesPerPixel*(gVideoWidth)*(gVideoHeight);
-
-	DWORD backGround = __kMalloc(backsize);
-
-	DWORD windowid = addWindow(FALSE, 0, 0, 0,"__cmosAlarm");
-
-	POINT p;
-	p.x = 0;
-	p.y = 0;
-
-	int color = 0;
-
-	__drawRectangle(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
-
-	while (1)
-	{
-		unsigned int ck = __kGetKbd(windowid);
-		//unsigned int ck = __getchar(windowid);
-		unsigned int asc = ck & 0xff;
-		if (asc == 0x1b)
-		{
-			__restoreRectangle(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
-			removeWindow(windowid);
-
-			__kFree(backGround);
-
-			//__terminatePid(pid);
-			return;
-		}
-
-		__sleep(0);
-
-		color += 0x00010f;
-		__drawRectangle(&p, gVideoWidth, gVideoHeight, color, 0);
-	}
+	//SnowScreenShow();
 }
+
+

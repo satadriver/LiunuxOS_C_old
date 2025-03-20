@@ -7,27 +7,59 @@
 #include "memory.h"
 
 
-DWORD __kTerminateThread(int vtid, char * filename, char * funcname, DWORD lpparams) {
+//any thread can call this function to terminate self
+//any thread can call this with tid to terminate other thread
+//above so,the most import element is dwtid
+extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 
-	int tid = vtid & 0x7fffffff;
-
-	removeTaskList(tid);
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	tss->status = TASK_OVER;
+	int tid = dwtid & 0x7fffffff;
 
 	char szout[1024];
-	__printf(szout, "__kTerminateThread tid:%d,filename:%s,funcname:%s\n", tid, filename, funcname);
 
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
-	if (vtid & 0x80000000)
+	int pid = tss[tid].pid;
+
+	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid) {
+		__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
+			tid, pid, current->pid, current->tid, filename, funcname);
+		return 0;
+	}
+
+	//__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
+
+	__asm {
+		//cli
+	}
+
+	if (current->tid == tid)
 	{
-		__sleep(0);
+		current->status = TASK_TERMINATE;
+	}
+	else {
+		//do nothing
+	}
+
+	tss[tid].status = TASK_TERMINATE;
+
+	__asm {
+		//sti
+	}
+
+	__kFree(tss[tid].espbase);
+
+	int retvalue = 0;
+
+	tss[tid].retValue = retvalue;
+
+	if (dwtid & 0x80000000) {
+		return 0;
 	}
 	else {
 		__sleep(-1);
 	}
-	
+
 	return 0;
 }
 
@@ -44,34 +76,36 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		return FALSE;
 	}
 
-	DWORD imagesize = getSizeOfImage((char*)addr);
-	DWORD alignsize = getAlignedSize(imagesize, PAGE_SIZE);
+	DWORD imagesize = getSizeOfImage((char*)module);
+	DWORD alignsize = getAlignSize(imagesize, PAGE_SIZE);
 	
-	//创建线程中，如果想要修改父进程的信息，必须在CURRENT_TASK_TSS_BASE中修改，如果CURRENT_TASK_TSS_BASE没被修改，线程切换时信息还是会被替换
+	//如果想要修改父进程的信息，必须在CURRENT_TASK_TSS_BASE中修改，否则线程切换时信息还是会被替换
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	LPPROCESS_INFO tss = freetask.lptss;
 	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
-	tss->sleep = 0;
+	
 	tss->tss.cr3 = process->tss.cr3;
 	tss->heapbase = process->heapbase;
 	tss->heapsize = process->heapsize;
 	tss->pid = process->pid;
 	tss->ppid = process->pid;
+	tss->fpu = TRUE;
 	tss->level = process->level;
-	tss->status = TASK_SUSPEND;
-	tss->tss.link = 1;	
-	tss->tss.iomapOffset = 136;
-	tss->tss.iomapEnd = 0xff;
 	tss->vaddr = process->vaddr;
 	tss->vasize = process->vasize;
-	tss->vasize += alignsize;
 	tss->tss.eflags = process->tss.eflags;
 	int level = process->level;
 	if (level)
 	{
-		tss->tss.eflags = tss->tss.eflags | ((level &3)<<12);
+		tss->tss.eflags = tss->tss.eflags | ((level & 3) << 12);
 	}
+	tss->status = TASK_SUSPEND;
+	tss->tss.link = 0;	
+	tss->tss.iomapOffset = 136;
+	tss->tss.iomapEnd = 0xff;
+
+	tss->sleep = 0;
 
 	tss->tss.eip = addr;
 	tss->moduleaddr = linear2phy(module);
@@ -99,14 +133,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,vaddr);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
-		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+#ifndef DISABLE_PAGE_MAPPING
+		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (ret == FALSE)
 		{
 			__kFree(tss->espbase);
@@ -121,16 +155,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #endif
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
-#ifdef TASK_SINGLE_TSS
+#ifdef SINGLE_TASK_TSS
 		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
 		ret0->cs = tss->tss.cs;
 		ret0->eip = tss->tss.eip;
 		ret0->eflags = tss->tss.eflags;
-		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.esp = (DWORD)ret0;
+		tss->tss.ebp = (DWORD)ret0;
 #else
-		//tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		//tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
@@ -143,14 +175,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = USER_MODE_CODE | tss->level;
 		tss->tss.ss = USER_MODE_STACK | tss->level;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,vaddr);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
-		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+#ifndef DISABLE_PAGE_MAPPING
+		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (ret == FALSE)
 		{
 			__kFree(tss->espbase);
@@ -165,7 +197,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #endif
 		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
-#ifdef TASK_SINGLE_TSS
+#ifdef SINGLE_TASK_TSS
 		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
 		ret3->ret0.cs = tss->tss.cs;
 		ret3->ret0.eip = tss->tss.eip;
@@ -176,16 +208,11 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.esp = (DWORD)ret3;
 		tss->tss.ebp = (DWORD)ret3;
 		tss->tss.ss = KERNEL_MODE_STACK;
-
-		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #else
 		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
 	}
-
-	tss->vasize += espsize;
 
 	params->terminate = (DWORD)__kTerminateThread;
 	params->terminate2 = (DWORD)__kTerminateThread;
@@ -200,20 +227,17 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		__memcpy((char*)params->lpcmdparams, (char*)runparam, sizeof(TASKCMDPARAMS));
 	}
 
-	tss->pid = process->pid;
-
 	tss->tid = freetask.number;
 
 	tss->counter = 0;
-
-	tss->ppid = process->pid;
 
 	__strcpy(tss->filename, process->filename);
 	__strcpy(tss->funcname, funcname);
 
 	tss->window = 0;
 
-	addTaskList(tss->tid);
+	//addTaskList(tss->tid);
+	tss->status = TASK_RUN;
 
 	return TRUE;
 }

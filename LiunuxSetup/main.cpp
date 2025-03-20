@@ -21,6 +21,10 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	SectorReaderWriter::close();
 
+	system("shutdown /r /t 0");
+
+	//execl("/sbin/reboot", "reboot", NULL);
+
 	ExitProcess(0);
 
 	return 0;

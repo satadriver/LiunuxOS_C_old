@@ -19,93 +19,16 @@
 //在任务切换时，处理器并不把换出任务的寄存器CR3和LDTR的内容保存到TSS中的地址映射寄存器区域。
 //事实上，处理器也从来不向该区域自动写入。因此，如果程序改变了LDTR或CR3，那么必须把新值人为地保存到TSS中的地址映射寄存器区域相应字段中。
 
-//我们知道，操作系统会存储一张全局描述符表GDT在内存中，而这张GDT是通过GDTR寄存器指出它的位置的。
+//操作系统会存储一张全局描述符表GDT在内存中，而这张GDT是通过GDTR寄存器指出它的位置的。
 //但是，GDTR中的地址是线性地址，也就是说，如果开启了分页机制的话，需要经过CR3寄存器的帮助，才能映射到物理内存地址，从而找到GDT
 
 
-DWORD mapCodeToLinear(DWORD pefiledata,int level) {
-	char szout[1024];
-
-	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
-
-	DWORD pedata = pefiledata;
-
-	DWORD allocsize = getSizeOfImage((char*)pedata);
-	allocsize = pageAlignmentSize(allocsize, 1);
-
-	int tablecnt = allocsize / tablesize;
-	if (allocsize % tablesize)
-	{
-		tablecnt++;
-	}
-
-	DWORD mappgTotal = allocsize / PAGE_SIZE;
-
-	int mappgcnt = 0;
-
-	DWORD imagebase = getImageBase((char*)pedata);
-	DWORD tboffset = imagebase / tablesize;
-	DWORD pgoffset = (imagebase / PAGE_SIZE) % ITEM_IN_PAGE;
-
-	DWORD * cr3 = (DWORD*)__kPageAlloc(PAGE_SIZE);
-	__memset((char*)cr3, 0, PAGE_SIZE);
-
-	if (level & 3)
-	{
-		copyPdeTables(0, MEMMORY_ALLOC_BASE, (DWORD*)cr3);
-	}
-	else {
-		copyPdeTables(0, 0, (DWORD*)cr3);
-	}
-
-	// 	__printf(szout, "initCr3:%x,pe:%x,imagebase:%x,imagesize:%x,table offset:%x,page offset:%x\r\n",
-	// 		cr3,pedata, imagebase, allocsize,tboffset,pgoffset);
-	// 	__drawGraphChars((unsigned char*)szout, 0);
-
-	for (int i = tboffset; i < tboffset + tablecnt; i++)
-	{
-		DWORD * pagetable = (DWORD*)__kPageAlloc(PAGE_SIZE);
-		if (pagetable == 0)
-		{
-			clearCr3(cr3);
-			return FALSE;
-		}
-		__memset((char*)pagetable, 0, PAGE_SIZE);
-
-		cr3[i] = (DWORD)pagetable | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
-
-		int j = 0;
-		if (i == tboffset)
-		{
-			j = pgoffset;
-		}
-		else {
-			j = 0;
-		}
-
-		for (; j < ITEM_IN_PAGE; j++)
-		{
-			pagetable[j] = (DWORD)pedata | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
-
-// 			__printf(szout, "remap cr3[%d]:%x[%d]:%x\r\n", i, (DWORD)pagetable, j,(DWORD)pedata | 7);
-
-			pedata += PAGE_SIZE;
-
-			mappgcnt++;
-			if (mappgcnt >= mappgTotal)
-			{
-				break;
-			}
-		}
-	}
-
-	return (DWORD)cr3;
-}
 
 
 
 
-int clearCr3(DWORD *cr3) {
+
+int clearCR3(DWORD *cr3) {
 	int cnt = 0;
 
 	if (cr3)
@@ -115,7 +38,7 @@ int clearCr3(DWORD *cr3) {
 			DWORD * p = (DWORD*)(cr3[i] & PAGE_MASK);
 			if (p)
 			{
-				/*
+				
 				for (int j = 0; j < ITEM_IN_PAGE; j++)
 				{
 					DWORD * page = (DWORD *)(p[j] & PAGE_MASK);
@@ -125,7 +48,7 @@ int clearCr3(DWORD *cr3) {
 						cnt++;
 					}
 				}
-				*/
+				
 				__kFreePage((DWORD)p);
 			}
 		}
@@ -137,7 +60,7 @@ int clearCr3(DWORD *cr3) {
 
 
 
-DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
+DWORD copyKernelCR3(DWORD addr, DWORD size, DWORD *cr3) {
 
 	if (size % PAGE_SIZE)
 	{
@@ -145,6 +68,7 @@ DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
 	}
 
 	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
+
 	int tablecnt = size / tablesize;
 	if (size % tablesize)
 	{
@@ -152,49 +76,52 @@ DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
 	}
 
 	DWORD tboffset = addr / tablesize;
-	//DWORD pgoffset = (phyaddr / PAGE_SIZE) % ITEM_IN_PAGE;
 
-	DWORD* backcr3 = (DWORD*)PDE_ENTRY_VALUE;
+	DWORD* kcr3 = (DWORD*)PDE_ENTRY_VALUE;
 
 	if (size == 0 && addr == 0) {
 		tablecnt = ITEM_IN_PAGE;
 		tboffset = 0;
 	}
 
-	for (int i = tboffset; i <tboffset + tablecnt; i++)
+	for (DWORD i = tboffset; i <tboffset + tablecnt; i++)
 	{
-		tables[i] = backcr3[i];
+		cr3[i] = kcr3[i];
 	}
 
 	return tablecnt;
 }
 
-DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD * cr3) {
+DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,int tag) {
 
 	char szout[1024];
 
-	if (physize % PAGE_SIZE)
+	if (size % PAGE_SIZE)
 	{
 		return FALSE;
 	}
 
+	tag = tag | PAGE_READWRITE | PAGE_PRESENT;
+
 	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
-	int tablecnt = physize / tablesize;
-	if (physize % tablesize)
+
+	int tablecnt = size / tablesize;
+	if (size % tablesize)
 	{
 		tablecnt++;
 	}
 
 	DWORD tboffset = linearaddr / tablesize;
+
 	DWORD pgoffset = (linearaddr / PAGE_SIZE) % ITEM_IN_PAGE;
 
-	DWORD remapTotal = physize / PAGE_SIZE;
+	DWORD remapTotal = size / PAGE_SIZE;
 
 	DWORD remapcnt = 0;
 
-	DWORD phyaddr = physicaladdr;
+	DWORD phyaddr = physaddr;
 
-	for (int i = tboffset; i < tboffset + tablecnt; i++)
+	for (DWORD i = tboffset; i < tboffset + tablecnt; i++)
 	{
 		DWORD * pagetable = (DWORD *)(cr3[i] & PAGE_MASK);
 		if (pagetable == 0)
@@ -206,7 +133,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD 
 			}
 			__memset((char*)pagetable, 0, PAGE_SIZE);
 
-			cr3[i] = (DWORD)pagetable | (PAGE_PRESENT| PAGE_READWRITE| PAGE_USERPRIVILEGE);
+			cr3[i] = (DWORD)pagetable | (PAGE_PRESENT| (tag ));
 		}
 
 		int j = 0;
@@ -220,10 +147,11 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD 
 
 		for (; j < ITEM_IN_PAGE; j++)
 		{
-			pagetable[j] = phyaddr | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+			pagetable[j] = phyaddr | (PAGE_PRESENT | (tag ));
 			remapcnt++;
 			if (remapcnt >= remapTotal)
 			{
+				return remapcnt;
 				break;
 			}
 
@@ -261,6 +189,7 @@ DWORD linear2phy(DWORD linearAddr,int pid) {
 
 
 DWORD linear2phy(DWORD linearAddr) {
+	return linearAddr;
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	int pid = process->pid;

@@ -6,30 +6,23 @@
 #include "Pe.h"
 #include "processDOS.h"
 #include "file.h"
-#include "systemTimer.h"
+#include "timer8254.h"
 #include "page.h"
 #include "def.h"
 #include "malloc.h"
+#include "core.h"
+#include "vectorRoutine.h"
+#include "servicesProc.h"
 
 
-
-
-
+/*
 TASK_LIST_ENTRY *gTasksListPtr = 0;
 
-
-
-
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
-	int retvalue = 0;
-	__asm {
-		mov retvalue, eax
-	}
 
 	removeTaskList(tid);
 	__sleep(-1);
 }
-
 
 TASK_LIST_ENTRY* searchTaskList(int tid) {
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
@@ -42,13 +35,12 @@ TASK_LIST_ENTRY* searchTaskList(int tid) {
 	return 0;
 }
 
-
 TASK_LIST_ENTRY* addTaskList(int tid) {
 	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
-	TASK_LIST_ENTRY* tasklist = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
+	//TASK_LIST_ENTRY* tasklist = (TASK_LIST_ENTRY*)gTasksListPtr;
 
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)tasklist;
+	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (list[i].valid == 0 ) {
@@ -57,22 +49,24 @@ TASK_LIST_ENTRY* addTaskList(int tid) {
 			list[i].process = base + tid;
 			list[i].process->status = TASK_RUN;
 			
-			addlistTail((LIST_ENTRY*)&tasklist->list, (LIST_ENTRY*)&list[i].list);
+			addlistTail((LIST_ENTRY*)&gTasksListPtr->list, (LIST_ENTRY*)&list[i].list);
 			return &list[i];
 		}
 	}
 	return 0;
 }
 
-
-
 TASK_LIST_ENTRY* removeTaskList(int tid) {
 
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
+	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)gTasksListPtr;
 	do 
 	{
 		if (list->valid && list->process && list->process->tid == tid)
 		{
+			if (gTasksListPtr == list) {
+				//gTasksListPtr = (TASK_LIST_ENTRY*)list->list.next;
+			}
+
 			removelist((LIST_ENTRY*)&list->list);
 
 			list->process->status = TASK_OVER;
@@ -83,62 +77,12 @@ TASK_LIST_ENTRY* removeTaskList(int tid) {
 			return list;
 		}
 		list = (TASK_LIST_ENTRY *)list->list.next;
-		if (list == 0)
-		{
-			break;
-		}
-	} while (list != (TASK_LIST_ENTRY *)TASKS_LIST_BASE);
+
+	} while (list && list != (TASK_LIST_ENTRY *)gTasksListPtr);
 
 	return 0;
 }
-
-
-
-
-void initTss() {
-
-}
-
-int __initTask() {
-
-	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
-	{
-		__memset((char*)&tssbase[i], 0, sizeof(PROCESS_INFO));
-	}
-
-	LPPROCESS_INFO process0 = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	__strcpy(process0->filename, KERNEL_DLL_MODULE_NAME);
-	__strcpy(process0->funcname, "__kernelEntry");
-	process0->tid = 0;
-	process0->pid = 0;
-	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
-	process0->level = 0;
-	process0->counter = 0;
-	process0->tss.ss0 = KERNEL_MODE_STACK;
-	process0->tss.esp0 = TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
-	process0->tss.iomapOffset = 136;
-	process0->tss.iomapEnd = 0xff; 
-	__memset((char*)process0->tss.intMap, 0, sizeof(process0->tss.intMap));
-	__memset((char*)process0->tss.iomap, 0, sizeof(process0->tss.iomap));
-	process0->tss.cr3 = PDE_ENTRY_VALUE;
-	process0->status = TASK_RUN;
-	process0->vaddr = KERNEL_DLL_BASE;
-	process0->vasize = 0;
-	process0->espbase = KERNEL_TASK_STACK_TOP;
-
-	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
-
-	__memset((char*)TASKS_LIST_BASE, 0, TASK_LIMIT_TOTAL * sizeof(TASK_LIST_ENTRY));
-
-	gTasksListPtr = (TASK_LIST_ENTRY *)TASKS_LIST_BASE;
-	initListEntry(&gTasksListPtr->list);
-	gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	gTasksListPtr->valid = 1;
-
-	__memset((char*)V86_TASKCONTROL_ADDRESS, 0, LIMIT_V86_PROC_COUNT*12);
-	return 0;
-}
+*/
 
 //CF(bit 0) [Carry flag]   
 //若算术操作产生的结果在最高有效位(most-significant bit)发生进位或借位则将其置1，反之清零。
@@ -150,8 +94,6 @@ int __initTask() {
 //OF(bit 11) [Overflow flag]   
 //如果整型结果是较大的正数或较小的负数，并且无法匹配目的操作数时将该位置1，反之清零。这个标志为带符号整型运算指示溢出状态
 
-//TF(bit 8) [Trap flag]   将该位设置为1以允许单步调试模式，清零则禁用该模式
-
 //OF是有符号数运算结果的标志
 //OF标志：这个标志有点复杂，其结果是CF标志和次最高位是否发生进位（如果进位是1，没进位是0）进行异或的结果
 //OF只对有符号数运算有意义，CF对无符号数运算有意义
@@ -162,14 +104,9 @@ int __initTask() {
 //这些指令被称为I/O敏感指令，如果特权级低的指令视图访问这些I/O敏感指令将会导致常规保护错误(#GP)
 //可以改变IOPL的指令只有popfl和iret指令，但只有运行在特权级0的程序才能将其改变
 
-//EM位控制浮点指令的执行是用软件模拟，还是由硬件执行。EM=0时，硬件控制浮点指令传送到协处理器；EM=1时，浮点指令由软件模拟。 
-//TS位用于加快任务的切换，通过在必要时才进行协处理器切换的方法实现这一目的。每当进行任务切换时，处理器把TS置1。
-//TS = 1时，浮点指令将产生设备不可用(DNA)异常。 
-//MP位控制WAIT指令在TS = 1时，是否产生DNA异常。MP = 1和TS = 1时，WAIT产生异常；MP = 0时，WAIT指令忽略TS条件，不产生异常。
+int g_tagMsg = 0;
 
-
-
-void prepareTss(LPPROCESS_INFO tss) {
+void clearTssBuf(LPPROCESS_INFO tss) {
 	__memset((CHAR*)tss, 0, sizeof(PROCESS_INFO));
 	tss->status = TASK_SUSPEND;
 
@@ -193,7 +130,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 	{
 		if (tss[i].status == TASK_OVER)
 		{
-			prepareTss(&tss[i]);
+			clearTssBuf(&tss[i]);
 
 			ret->number = i;
 			ret->lptss = &tss[i];
@@ -206,89 +143,57 @@ int __getFreeTask(LPTASKRESULT ret) {
 
 
 
-int __createDosInFileTask(DWORD addr, char * filename) {
-	if (__findProcessFileName(filename))
-	{
-		return 0;
+LPPROCESS_INFO __findProcessFuncName(char * funcname) {
+
+	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (p[i].status == TASK_RUN && __strcmp(p[i].funcname, funcname) == 0) {
+			return & p[i];
+		}
 	}
-	return __kCreateProcess(addr,0x1000, filename, filename, DOS_PROCESS_RUNCODE | 3, 0);
-}
-
-
-
-
-
-TASK_LIST_ENTRY* __findProcessFuncName(char * funcname) {
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	do
-	{
-		if (__strcmp(list->process->funcname,funcname) == 0)
-		{
-			return list;
-		}
-		list = (TASK_LIST_ENTRY *)list->list.next;
-		if (list == 0)
-		{
-			break;
-		}
-	} while (list != (TASK_LIST_ENTRY *)TASKS_LIST_BASE);
-
 	return FALSE;
 }
 
-TASK_LIST_ENTRY * __findProcessFileName(char * filename) {
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	do
-	{
-		if (__strcmp(list->process->filename, filename) == 0)
-		{
-			return list;
+LPPROCESS_INFO __findProcessFileName(char * filename) {
+	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (p[i].status == TASK_RUN && __strcmp(p[i].filename, filename) == 0) {
+			return &p[i];
 		}
-		list = (TASK_LIST_ENTRY *)list->list.next;
-	} while (list != (TASK_LIST_ENTRY *)TASKS_LIST_BASE);
-
+	}
 	return FALSE;
 }
 
 
 
-TASK_LIST_ENTRY* __findProcessByPid(int pid) {
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	do
-	{
-		if (list->process->pid == pid)
-		{
-			return list;
+LPPROCESS_INFO __findProcessByPid(int pid) {
+	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (p[i].status == TASK_RUN && p[i].pid == pid ) {
+			return &p[i];
 		}
-		list = (TASK_LIST_ENTRY *)list->list.next;
-
-	} while (list != (TASK_LIST_ENTRY *)TASKS_LIST_BASE);
-
+	}
 	return FALSE;
 }
 
 
-TASK_LIST_ENTRY* __findProcessByTid(int tid) {
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	do
-	{
-		if (list->process->tid == tid)
-		{
-			return list;
+LPPROCESS_INFO __findProcessByTid(int tid) {
+	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (p[i].status == TASK_RUN && p[i].tid == tid) {
+			return &p[i];
 		}
-		list = (TASK_LIST_ENTRY *)list->list.next;
-	} while (list != (TASK_LIST_ENTRY *)TASKS_LIST_BASE);
-
+	}
 	return FALSE;
 }
 
 
 int __terminateByFileName(char * filename) {
 
-	TASK_LIST_ENTRY* list = __findProcessFileName(filename);
-	if (list)
+	LPPROCESS_INFO p = __findProcessFileName(filename);
+	if (p)
 	{
-		removeTaskList(list->process->pid);
+		p->status = TASK_OVER;
 	}
 
 	return FALSE;
@@ -296,10 +201,11 @@ int __terminateByFileName(char * filename) {
 
 int __terminateByFuncName(char * funcname) {
 
-	TASK_LIST_ENTRY* list = __findProcessFuncName(funcname);
-	if (list)
+	PROCESS_INFO * p = __findProcessFuncName(funcname);
+	if (p)
 	{
-		removeTaskList(list->process->pid);
+		p->status = TASK_OVER;
+
 	}
 
 	return FALSE;
@@ -307,22 +213,23 @@ int __terminateByFuncName(char * funcname) {
 
 int __terminatePid(int pid) {
 
-	TASK_LIST_ENTRY* list = __findProcessByPid(pid);
-	if (list)
+	PROCESS_INFO* p = __findProcessByPid(pid);
+	if (p)
 	{
-		removeTaskList(list->process->pid);
-	}
+		p->status = TASK_OVER;
 
+	}
 	return 0;
 }
 
 
 int __terminateTid(int tid) {
 
-	TASK_LIST_ENTRY* list = __findProcessByTid(tid);
-	if (list)
+	PROCESS_INFO* p = __findProcessByTid(tid);
+	if (p)
 	{
-		removeTaskList(list->process->pid);
+		p->status = TASK_OVER;
+
 	}
 
 	return 0;
@@ -332,10 +239,10 @@ int __terminateTid(int tid) {
 
 int __pauseTid(int tid) {
 
-	TASK_LIST_ENTRY* list = __findProcessByTid(tid);
-	if (list)
+	PROCESS_INFO* p = __findProcessByTid(tid);
+	if (p)
 	{
-		list->process->status = TASK_SUSPEND;
+		p->status = TASK_SUSPEND;
 	}
 
 	return 0;
@@ -344,10 +251,10 @@ int __pauseTid(int tid) {
 
 int __resumeTid(int tid) {
 
-	TASK_LIST_ENTRY* list = __findProcessByTid(tid);
-	if (list)
+	PROCESS_INFO* p = __findProcessByTid(tid);
+	if (p)
 	{
-		list->process->status = TASK_RUN;
+		p->status = TASK_RUN;
 	}
 
 	return 0;
@@ -356,10 +263,10 @@ int __resumeTid(int tid) {
 
 int __pausePid(int pid) {
 
-	TASK_LIST_ENTRY* list = __findProcessByPid(pid);
-	if (list)
+	PROCESS_INFO* p = __findProcessByPid(pid);
+	if (p)
 	{
-		list->process->status = TASK_SUSPEND;
+		p->status = TASK_SUSPEND;
 	}
 
 	return 0;
@@ -368,181 +275,273 @@ int __pausePid(int pid) {
 
 int __resumePid(int pid) {
 
-	TASK_LIST_ENTRY* list = __findProcessByPid(pid);
-	if (list)
+	PROCESS_INFO* p = __findProcessByPid(pid);
+	if (p)
 	{
-		list->process->status = TASK_RUN;
+		p->status = TASK_RUN;
 	}
 
 	return 0;
 }
 
 
-#ifndef TASK_SINGLE_TSS
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* regs) {
 
-	systimerProc();
 
-// 	LPDOS_PE_CONTROL dos_status = (LPDOS_PE_CONTROL)V86_TASKCONTROL_ADDRESS;
-// 	for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
-// 	{
-// 		if (dos_status[i].status == DOS_TASK_OVER)
-// 		{
-// 			LPPROCESS_INFO p = __findProcessByPid(dos_status[i].pid);
-// 			if (p)
-// 			{
-// 				p->status = TASK_OVER;
-// 				removeTaskList(dos_status[i].pid);
-// 			}
-// 		}
-// 	}
 
-	TASK_LIST_ENTRY * prev = gTasksListPtr;
-	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
-	do
+#ifndef SINGLE_TASK_TSS
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
+
+	char szout[1024];
+
+	__int64 timeh1 = __krdtsc();
+
+	__k8254TimerProc();
+
+	__asm {
+		//clts			//before all fpu instructions
+	}
+
+	//__printf(szout, "__kTaskSchedule entry\r\n");
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+
+	if (process->tid != prev->tid) {
+		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
+		return 0;
+	}
+
+	V86ProcessCheck(env, prev, process);
+
+	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		prev->status = TASK_OVER;
+		process->status = TASK_OVER;
+		if (prev->tid == prev->pid) {
+			//__kFreeProcess(prev->pid);
+		}
+		else {
+			//__kFree(prev->espbase);
+		}
+	}
+	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
+		process->status = TASK_OVER;
+		prev->status = TASK_OVER;
+		__printf(szout, "__kTaskSchedule prev status TASK_OVER!\r\n");
+	}
+	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
 	{
-		if (next == 0 || next == prev)
-		{
+		if (process->sleep) {
+			process->sleep--;
+			prev->sleep = process->sleep;
+		}
+		else if (prev->sleep) {
+			prev->sleep--;
+			process->sleep = prev->sleep;
+		}
+		else {
+			process->counter++;
+		}
+	}
+	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
+		process->status = TASK_SUSPEND;
+		prev->status = TASK_SUSPEND;
+	}
+	else {
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
+		return 0;
+	}
+	
+
+	LPPROCESS_INFO next = prev;
+	do {
+		next++;
+		if (next - tss >= TASK_LIMIT_TOTAL) {
+			next = tss;
+		}
+
+		if (next == prev) {
 			return FALSE;
 		}
 
-		if (next->process->status != TASK_RUN)
-		{
-			next = (TASK_LIST_ENTRY*)next->list.next;
+		if (next->status == TASK_TERMINATE) {
+			next->status = TASK_OVER;
+			if (next->tid == next->pid) {
+				//__kFreeProcess(next->pid);
+			}
+			else {
+				//__kFree(next->espbase);
+			}
 			continue;
 		}
-		else {
-			if (next->process->sleep)
-			{
-				next->process->sleep--;
-
-				next = (TASK_LIST_ENTRY*)next->list.next;
-				continue;
+		else if (next->status == TASK_RUN) {
+			if (next->sleep) {
+				next->sleep--;
 			}
 			else {
 				break;
 			}
+			continue;
+		}
+		else if (next->status == TASK_OVER) {
+			continue;
+		}
+		else if (next->status == TASK_SUSPEND) {
+			continue;
 		}
 	} while (TRUE);
 	
-	gTasksListPtr = (TASK_LIST_ENTRY*)next;
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	
-// 	if (process->tss.link)
-// 	{
-// 		char szout[1024];
-// 		__printf(szout, "tid:%d pid:%d link:%d\r\n", process->tid, process->pid, process->tss.link);
-// 		__drawGraphChars((unsigned char*)szout, 0);
-// 		process->tss.link = 0;
-// 	}
-
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
-// 	DWORD nextcr3 = gTasksListPtr->process->tss.cr3;
-// 	LPTSS timertss = (LPTSS)gAsmTsses;
-// 	timertss->cr3 = nextcr3;
-// 	short ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
-// 	__asm {
-// 		mov ax,ldt
-// 		lldt ax
-// 	}
+	//DescriptTableReg ldtreg;
+	// 	__asm {
+	//		sldt ldtreg;
+	// 	}
+	//process->tss.ldt = ldtreg.addr;
 
-	process->counter++;
-	__memcpy((char*)(tss + prev->process->tid), (char*)process, sizeof(PROCESS_INFO));
-	__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
+	
+	__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+	__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
 	
 	//tasktest();
 
- 	char * fenvprev = (char*)FPU_STATUS_BUFFER + (prev->process->tid << 9);
+ 	char * fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
-	__asm {
-		clts			//before all fpu instructions
-		fwait
+	__asm {	
+		FNCLEX
+		//fwait
+		fninit
 		mov eax, fenvprev
 		FxSAVE[eax]
 		//fsave [fenv]
-		//FNCLEX
 	}
-	prev->process->tss.fpu = 1;
-
-	if (gTasksListPtr->process->tss.fpu)
+	
 	{
-		char * fenvnext = (char*)FPU_STATUS_BUFFER + (gTasksListPtr->process->tid << 9);
+		char * fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
 		__asm {
-			clts
-			fwait
-			finit
 			mov eax, fenvnext
 			//frstor [fenv]
 			fxrstor[eax]
+			FNCLEX
+			fninit
 		}
 	}
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
+		__int64 timeh2 = __krdtsc() - timeh1;
 
+		DWORD cpureq;
+		DWORD maxreq;
+		DWORD busreq;
+		__cpuFreq(&cpureq, &maxreq, &busreq);
+		__int64 cpurate = cpureq;
+
+		__printf(szout,
+			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
+			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
+			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
+	}
 	return TRUE;
 }
-
 #else
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env) {
 
-	systimerProc();
+	char szout[1024];
+	__int64 timeh1 = __krdtsc();
+	__asm {
+		clts			//before all fpu instructions
+	}
 
-	// 	LPDOS_PE_CONTROL dos_status = (LPDOS_PE_CONTROL)V86_TASKCONTROL_ADDRESS;
-	// 	for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
-	// 	{
-	// 		if (dos_status[i].status == DOS_TASK_OVER)
-	// 		{
-	// 			LPPROCESS_INFO p = __findProcessByPid(dos_status[i].pid);
-	// 			if (p)
-	// 			{
-	// 				p->status = TASK_OVER;
-	// 				removeTaskList(dos_status[i].pid);
-	// 			}
-	// 		}
-	// 	}
+	__k8254TimerProc();
 
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 
-	TASK_LIST_ENTRY* prev = gTasksListPtr;
+	if (process->tid != prev->tid) {
+		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
+		return 0;
+	}
 
-	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
-	do
+	V86ProcessCheck(env, prev, process);
+
+	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		prev->status = TASK_OVER;
+		process->status = TASK_OVER;
+		if (prev->tid == prev->pid) {
+			//__kFreeProcess(prev->pid);
+		}
+		else {
+			//__kFree(prev->espbase);
+		}
+	}
+	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
+		process->status = TASK_OVER;
+		prev->status = TASK_OVER;
+		__printf(szout, "__kTaskSchedule prev status TASK_OVER!\r\n");
+	}
+	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
 	{
-		if (next == 0 || next == prev)
-		{
+		if (process->sleep) {
+			process->sleep--;
+			prev->sleep = process->sleep;
+		}
+		else if (prev->sleep) {
+			prev->sleep--;
+			process->sleep = prev->sleep;
+		}
+		else {
+			process->counter++;
+		}
+	}
+	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
+		process->status = TASK_SUSPEND;
+		prev->status = TASK_SUSPEND;
+	}
+	else {
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
+		return 0;
+	}
+
+
+	LPPROCESS_INFO next = prev;
+	do {
+		next++;
+		if (next - tss >= TASK_LIMIT_TOTAL) {
+			next = tss;
+		}
+
+		if (next == prev) {
 			return FALSE;
 		}
 
-		if (next->process->status != TASK_RUN)
-		{
-			next = (TASK_LIST_ENTRY*)next->list.next;
+		if (next->status == TASK_TERMINATE) {
+			next->status = TASK_OVER;
+			if (next->tid == next->pid) {
+				//__kFreeProcess(next->pid);
+			}
+			else {
+				//__kFree(next->espbase);
+			}
 			continue;
 		}
-		else {
-			if (next->process->sleep)
-			{
-				next->process->sleep--;
-
-				next = (TASK_LIST_ENTRY*)next->list.next;
-				continue;
+		else if (next->status == TASK_RUN) {
+			if (next->sleep) {
+				next->sleep--;
 			}
 			else {
 				break;
 			}
+			continue;
+		}
+		else if (next->status == TASK_OVER) {
+			continue;
+		}
+		else if (next->status == TASK_SUSPEND) {
+			continue;
 		}
 	} while (TRUE);
-
-	gTasksListPtr = (TASK_LIST_ENTRY*)next;
-
-	if (prev->process->tid == gTasksListPtr->process->tid)
-	{
-		//return 0;
-	}
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 	process->tss.eax = env->eax;
 	process->tss.ecx = env->ecx;
@@ -557,6 +556,11 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	process->tss.fs = env->fs;
 	process->tss.ds = env->ds;
 	process->tss.es = env->es;
+
+	process->tss.eip = env->eip;
+	process->tss.cs = env->cs;
+	process->tss.eflags = env->eflags;
+
 	DWORD dwcr3 = 0;
 	__asm {
 		mov eax,cr3
@@ -572,72 +576,48 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		process->tss.ss = KERNEL_MODE_DATA;
 	}
 
-	// 	if (process->tss.link)
-	// 	{
-	// 		char szout[1024];
-	// 		__printf(szout, "tid:%d pid:%d link:%d\r\n", process->tid, process->pid, process->tss.link);
-	// 		__drawGraphChars((unsigned char*)szout, 0);
-	// 		process->tss.link = 0;
-	// 	}
-
-		//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
-	// 	DWORD nextcr3 = gTasksListPtr->process->tss.cr3;
-	// 	LPTSS timertss = (LPTSS)gAsmTsses;
-	// 	timertss->cr3 = nextcr3;
-	// 	short ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
+	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
+	//DescriptTableReg ldtreg;
 	// 	__asm {
-	// 		mov ax,ldt
-	// 		lldt ax
+	//		sldt ldtreg;
 	// 	}
+	//process->tss.ldt = ldtreg.addr;
 
-		//if (prev->process->status == TASK_RUN && process->status == TASK_RUN)
-	{
-		process->counter++;
-		__memcpy((char*)(tss + prev->process->tid), (char*)process, sizeof(PROCESS_INFO));
-	}
 
-	//if (gTasksListPtr->process->status == TASK_RUN)
-	{
-		__memcpy((char*)process, (char*)(gTasksListPtr->process->tid + tss), sizeof(PROCESS_INFO));
-	}
+	__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+	__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
 
 	if (process->tss.eflags & 0x20000) {
-
 	}
 	else if (process->tss.cs & 3) {
-		//env->ss = KERNEL_MODE_STACK;
 	}
 	else {
-
 	}
 
 	//tasktest();
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->process->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
 	__asm {
-		clts			//before all fpu instructions
-		fwait
+		FNCLEX
+		fninit
+		//fwait
 		mov eax, fenvprev
 		FxSAVE[eax]
 		//fsave [fenv]
-		//FNCLEX
 	}
-	prev->process->tss.fpu = 1;
 
-	if (gTasksListPtr->process->tss.fpu)
 	{
-		char* fenvnext = (char*)FPU_STATUS_BUFFER + (gTasksListPtr->process->tid << 9);
+		char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
 		__asm {
-			clts
-			fwait
-			finit
 			mov eax, fenvnext
 			//frstor [fenv]
 			fxrstor[eax]
+			FNCLEX
+			fninit
 		}
 	}
 
@@ -655,10 +635,19 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->es = process->tss.es;
 	env->ss = process->tss.ss;
 
-	dwcr3 = process->tss.cr3;
-	__asm {
-		mov eax, dwcr3
-		//mov cr3, eax
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
+		__int64 timeh2 = __krdtsc() - timeh1;
+
+		DWORD cpureq;
+		DWORD maxreq;
+		DWORD busreq;
+		__cpuFreq(&cpureq, &maxreq, &busreq);
+		__int64 cpurate = cpureq;
+
+		__printf(szout,
+			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
+			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
+			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
 	}
 
 	return TRUE;
@@ -666,27 +655,106 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 #endif
 
 
-void tasktest(TASK_LIST_ENTRY *gTasksListPtr, TASK_LIST_ENTRY*gPrevTasksPtr) {
+void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 	static int gTestFlag = 0;
 	if (gTestFlag >= 0 && gTestFlag <= -1)
 	{
 		char szout[1024];
-		//TSS* procinfo = (TSS*)gAsmTsses;
-		//__printf(szout, "clock tick tss link:%x,eflags:%x\r\n", procinfo->link, procinfo->eflags);
-		//__drawGraphChars((unsigned char*)szout, 0);
-
 		__printf(szout,
 			"saved  cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x,\r\n"
 			"loaded cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x.\r\n\r\n",
-			gPrevTasksPtr->process->tss.cr3, gPrevTasksPtr->process->pid, gPrevTasksPtr->process->filename, gPrevTasksPtr->process->level,
-			gPrevTasksPtr->process->tss.esp0, gPrevTasksPtr->process->tss.ss0, gPrevTasksPtr->process->tss.eip, gPrevTasksPtr->process->tss.cs,
-			gPrevTasksPtr->process->tss.esp, gPrevTasksPtr->process->tss.ss, gPrevTasksPtr->process->tss.eflags, gPrevTasksPtr->process->tss.link,
-
-			gTasksListPtr->process->tss.cr3, gTasksListPtr->process->pid, gTasksListPtr->process->filename, gTasksListPtr->process->level,
-			gTasksListPtr->process->tss.esp0, gTasksListPtr->process->tss.ss0, gTasksListPtr->process->tss.eip, gTasksListPtr->process->tss.cs,
-			gTasksListPtr->process->tss.esp, gTasksListPtr->process->tss.ss, gTasksListPtr->process->tss.eflags, gTasksListPtr->process->tss.link
-		);
-		__drawGraphChars((unsigned char*)szout, 0);
+			gPrevTasksPtr->tss.cr3, gPrevTasksPtr->pid, gPrevTasksPtr->filename, gPrevTasksPtr->level,
+			gPrevTasksPtr->tss.esp0, gPrevTasksPtr->tss.ss0, gPrevTasksPtr->tss.eip, gPrevTasksPtr->tss.cs,
+			gPrevTasksPtr->tss.esp, gPrevTasksPtr->tss.ss, gPrevTasksPtr->tss.eflags, gPrevTasksPtr->tss.link,
+			gTasksListPtr->tss.cr3, gTasksListPtr->pid, gTasksListPtr->filename, gTasksListPtr->level,
+			gTasksListPtr->tss.esp0, gTasksListPtr->tss.ss0, gTasksListPtr->tss.eip, gTasksListPtr->tss.cs,
+			gTasksListPtr->tss.esp, gTasksListPtr->tss.ss, gTasksListPtr->tss.eflags, gTasksListPtr->tss.link);
 		gTestFlag++;
 	}
 }
+
+
+void initTaskSwitchTss() {
+
+	DescriptTableReg idtbase;
+	__asm {
+		sidt idtbase
+	}
+
+	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)idtbase.addr;
+
+	initKernelTss((TSS*)CURRENT_TASK_TSS_BASE, TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,
+		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor(CURRENT_TASK_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
+#ifdef SINGLE_TASK_TSS
+	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
+#else
+	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTimerSelector));
+	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
+#endif
+
+	__asm
+	{
+		mov eax, kTssTaskSelector
+		ltr ax
+		mov ax, ldtSelector
+		lldt ax
+	}
+}
+
+int __initTask() {
+
+	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
+	{
+		//__memset((char*)&tssbase[i], 0, sizeof(PROCESS_INFO));
+		tssbase[i].status = TASK_OVER;
+	}
+
+	//initTaskSwitchTss();
+	LPPROCESS_INFO process0 = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	__strcpy(process0->filename, KERNEL_DLL_MODULE_NAME);
+	__strcpy(process0->funcname, "__kernelEntry");
+	process0->status = TASK_RUN;
+	process0->tid = 0;
+	process0->pid = 0;
+	process0->espbase = KERNEL_TASK_STACK_TOP;
+	process0->level = 0;
+	process0->counter = 0;
+	process0->vaddr = 0;
+	process0->vasize = MEMMORY_ALLOC_BASE;
+	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
+	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
+
+	/*
+	__memset((char*)TASKS_LIST_BASE, 0, TASK_LIMIT_TOTAL * sizeof(TASK_LIST_ENTRY));
+	gTasksListPtr = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
+	initListEntry(&gTasksListPtr->list);
+	gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	gTasksListPtr->valid = TRUE;
+	*/
+
+	//__memset((char*)V86_TASKCONTROL_ADDRESS, 0, LIMIT_V86_PROC_COUNT*12);
+
+	/*
+	DWORD addr = 0x500;		//from 0x500 to 0x7c00 is available memory address
+	*(DWORD*)addr = 0xcf;	//iret opcode
+	DWORD* vector = (DWORD * )(0x20*4);		//dos int call
+	for (int i = 0x20; i < 0x100; i++) {
+		WORD* v = (WORD*)vector;
+		*v = 0;
+		*(v + 1) = (0x500 >> 4);
+		vector++;
+	}
+	*/
+
+	return 0;
+}
+
+
+//在V86模式下，CPL=3，执行特权指令时，或者要引起出错码为0的通用保护故障，或者要引起 非法操作码故障。
+//由于CPL = 3， 所以如果IOPL < 3，那么执行CLI或STI指令将引起通用保护故障。
+//输入 / 输出指令IN、INS、OUT或OUTS的 敏感条件仅仅是当前V86任务TSS内的I / O许可位图，而忽略EFLAGS中的IOPL。
+//在V86模式下， 当IOPL < 3时，执行指令PUSHF、POPF、INT n及IRET会引起出错码为0的通用保护故障。
+//采取上述措施的目的是使操作系统软件可以支持一个“虚拟EFLAGS”寄存器。

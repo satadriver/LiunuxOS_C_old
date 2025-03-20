@@ -7,7 +7,7 @@ using namespace std;
 
 
 
-#define LIUNUX_FLAG 0x00474a4c
+#define LIUNUX_FLAG					0x00474a4c
 
 #define MBR_FILENAME				"mbr.com"
 #define LOADER_FILENAME				"loader.com"

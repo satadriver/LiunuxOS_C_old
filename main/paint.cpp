@@ -1,9 +1,9 @@
-#include "paint.h"
+
 #pragma once
-#include "windowclass.h"
+#include "paint.h"
 #include "video.h"
 #include "Utils.h"
-#include "screenUtils.h"
+#include "guiHelper.h"
 #include "mouse.h"
 #include "keyboard.h"
 #include "task.h"
@@ -18,7 +18,7 @@
 
 
 int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD runparam) {
-	//char szout[1024];
+	char szout[1024];
 
 	int retvalue = 0;
 
@@ -45,21 +45,21 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
-			__restoreWindow(&window);
+			__DestroyWindow(&window);
 			return 0;
 		}
 
 
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-		retvalue = getmouse(&mouseinfo, window.id);
+		retvalue = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
 			if (mouseinfo.x >= window.shutdownx && mouseinfo.x <= window.shutdownx + window.capHeight)
 			{
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
-					__restoreWindow(&window);
+					__DestroyWindow(&window);
 					return 0;
 				}
 			}
@@ -74,8 +74,8 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 					pencilColor = *(unsigned int*)pos;
 
 // 					__printf(szout, "set color:%x\r\n", pencilColor);
-// 					__drawGraphChars((unsigned char*)szout, 0);
 
+					__kRefreshMouseBackup();
  					__kDrawMouse();
 					__sleep(0);
 					continue;

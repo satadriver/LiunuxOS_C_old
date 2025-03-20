@@ -3,8 +3,8 @@
 
 #define MOUSE_POS_LIMIT				256
 
-#define MOUSE_SHOW_COLOR			0x005C9C00
-#define MOUSE_BORDER_SIZE			4
+#define MOUSE_SHOW_COLOR			0x9f9f9f9f
+#define MOUSE_BORDER_WIDTH			2
 #define MOUSE_SHOW_RATIO			40
 #define MOUSE_BORDER_COLOR			0
 
@@ -35,17 +35,28 @@ typedef struct {
 	int			mouseBufHdr;
 	int			mouseBufTail;
 	int			bInvalid;
-	DWORD		mouseCoverData[4096];
+	
 	DWORD		mouseColor;
+	DWORD		mouseCoverData[0x4000];
 }MOUSEDATA,*LPMOUSEDATA;
 
 #pragma pack()
 
 
+
 void mousetest();
 
-#ifdef DLL_EXPORT
+extern "C" void MouseIntProc();
 
+int getMouseID();
+
+
+int isGeometryBorder(int x, int y);
+
+int isGeometryMouse(int x, int y);
+
+#ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) DWORD gMouseID;
 extern "C"  __declspec(dllexport) void __initMouse(int x, int y);
 extern "C"  __declspec(dllexport) DWORD gMouseTest;
 
@@ -64,9 +75,9 @@ extern "C"  __declspec(dllexport) void __kRestoreMouse();
 
 extern "C"  __declspec(dllexport) void __kDrawMouse();
 
-void __initMouse(int x, int y);
 
 #else
+extern "C" __declspec(dllimport) DWORD gMouseID;
 extern "C"  __declspec(dllimport) void __initMouse(int x, int y);
 extern "C"  __declspec(dllimport) DWORD gMouseTest;
 

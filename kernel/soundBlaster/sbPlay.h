@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../def.h"
-
+#include "../task.h"
 
 
 #define SOUNDBLASTER_BASE_PORT	0X220
@@ -38,6 +38,8 @@ typedef struct
 extern int gWavDataSize;
 extern char * gWavDataPtr;
 extern WAVEFORMAT * gWavFormat;
+
+void __declspec(dllexport) SoundInterruptProc(LIGHT_ENVIRONMENT* stack);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) int sbplay(char * data, int size);

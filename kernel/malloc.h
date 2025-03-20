@@ -27,38 +27,41 @@ typedef struct
 typedef struct  
 {
 	DWORD addr;
-	USHORT size;
-	UCHAR flag;
-	UCHAR reserved;
+	DWORD size;
+
 }MS_HEAP_STRUCT;
 
 
 
 #pragma pack()
 
+DWORD getBorderAddr();
 
-LPMEMALLOCINFO getExistAddr(DWORD addr,int size);
+int setMemAllocInfo(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid);
 
-LPMEMALLOCINFO getFreeMemItem();
+void resetAllMemAllocInfo();
 
-int getAlignedSize(int size, int allignsize);
+int resetMemAllocInfo(LPMEMALLOCINFO item);
 
-DWORD __heapAlloc(int size);
+LPMEMALLOCINFO getMemAllocInfo();
 
-DWORD __heapFree(DWORD addr);
+int getAlignSize(int size, int allignsize);
 
+LPMEMALLOCINFO isAddrExist(DWORD addr, int size);
+
+LPMEMALLOCINFO findAddr(DWORD addr);
 
 int initMemory();
 
-DWORD pageAlignmentSize(DWORD size,int max);
+DWORD pageAlignSize(DWORD size,int max);
 
-DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr);
+DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr,int tag);
 
-void freeProcessMemory();
+void freeProcessMemory(int pid);
 
 #ifdef DLL_EXPORT
 
-extern "C"  __declspec(dllexport) int formatProcMem(int pid, char * szout);
+extern "C"  __declspec(dllexport) int getProcMemory(int pid, char * szout);
 extern "C"  __declspec(dllexport) int __free(DWORD addr);
 extern "C"  __declspec(dllexport) DWORD __malloc(DWORD s);
 
@@ -66,7 +69,7 @@ extern "C"  __declspec(dllexport) DWORD __kMalloc(DWORD size);
 
 extern "C"  __declspec(dllexport) int __kFree(DWORD buf);
 #else
-extern "C"  __declspec(dllimport) int formatProcMem(int pid, char * szout);
+extern "C"  __declspec(dllimport) int getProcMemory(int pid, char * szout);
 extern "C"  __declspec(dllimport) int __free(DWORD addr);
 extern "C"  __declspec(dllimport) DWORD __malloc(DWORD s);
 extern "C"  __declspec(dllimport) DWORD __kMalloc(DWORD size);

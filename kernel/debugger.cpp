@@ -1,10 +1,14 @@
 #include "debugger.h"
 #include "Utils.h"
 #include "video.h"
-
+#include "task.h"
+#include "device.h"
+#include "core.h"
+#include "VM86.h"
+#include "servicesProc.h"
 
 //VME bit0
-//虚拟8086模式扩展（CR4中的位0）置1时则在虚拟8086模式下，启用中断和异常处理扩展。置0时禁用扩展功能。
+//虚拟8086模式扩展（中的位0）置1时则在虚拟8086模式下，启用中断和异常处理扩展。置0时禁用扩展功能。
 //虚拟模式扩展的应用是通过减少虚拟8086监控程序对8086程序执行过程中出现的中断和异常的处理，并且重定向中断和异常到8086程序的处理程序，
 //从而改进虚拟8086模式下应用程序的性能。对于虚拟中断标志（VIF vip）它也提供了硬件支持来改进在多任务及多处理器环境下执行8086程序的可靠性
 
@@ -16,33 +20,29 @@
 // PVI enhancements are also supported in long mode.See“Virtual Interrupts” on page 251 for more
 // information on using PVI.
 
-
 //tsd stamp disable bit
-
 //de debugging extensions bit 
 
-
-
 // PSE bit4
-// 页尺寸扩展(CR4中的位4)置1时页大小为4M字节，置0时页大小为4K字节
+// 页尺寸扩展(中的位4)置1时页大小为4M字节，置0时页大小为4K字节
 
 // PAE bit5
-// 物理地址扩展(CR4中的位5)置1时启用分页机制来引用36位物理地址；置0时只可引用32位地址。
+// 物理地址扩展(中的位5)置1时启用分页机制来引用36位物理地址；置0时只可引用32位地址。
 
 // MCE bit6
-// 启用机器检测(CR4中的位6)置1时启用机器检测(machine - check)异常，置0时禁用机器检测异常
+// 启用机器检测(中的位6)置1时启用机器检测(machine - check)异常，置0时禁用机器检测异常
 
 // PGE bit7
-// 启用全局页(CR4中的位7)(在P6系列处理器中引入)置1时启用全局页，置0时禁用全局页。
+// 启用全局页(中的位7)(在P6系列处理器中引入)置1时启用全局页，置0时禁用全局页。
 // 全局页这一特征能够使那些经常被使用或共享的页对所有的用户标志为全局的(通过页目录或者页表项中的第8位 - 全局标志来实现)。
 // 在任务切换或者往CR3寄存器写时，全局页并不从TLB中刷新。当启用全局页这一特征时，在设置PGE标志之前，
 // 必须先启用分页机制(通过设置CR0中的PG标志)。如果将这个顺序颠倒了，可能会影响程序的正确性以及处理器的性能会受损
 
 // PCE bit8
-// 启用性能监测计数器(CR4中的位8)置1时，允许RDPMC指令执行，不论程序运行哪个特权级别。置0时RDPMC指令只能运行在0级特权上。
+// 启用性能监测计数器(中的位8)置1时，允许RDPMC指令执行，不论程序运行哪个特权级别。置0时RDPMC指令只能运行在0级特权上。
 
 //bit 9
-// OSFXSR 操作系统对FXSAVE和FXRSTOR指令的支持(CR4中的位9)置1时，这一标志具有下列
+// OSFXSR 操作系统对FXSAVE和FXRSTOR指令的支持(中的位9)置1时，这一标志具有下列
 // 功能：(1)表明操作系统支持FXSAVE和FXRSTOR指令
 // (2)启用FXSAVE和FXRSTOR指令来保存和恢复XMM和MXCSR寄存器连同x87 FPU和MMX寄存器的内容
 // (3)允许处理器执行除了PAUSE、PREFETCHh、SFENCE、LFENCE，MFENCE、MOVNTI和CLFLUSH指令之外的任何SSE和SSE2指令。
@@ -54,7 +54,7 @@
 // OSFXSR位则为操作系统启用这些特征提供了途径以及并指明了操作系统是否支持这些特征。
 
 // OSXMMEXCPT bit10
-// 操作系统支持未屏蔽的SIMD浮点异常(CR4中的位10)，表明操作系统通过异常处理程序支持非屏蔽的SIMD浮点异常的处理，
+// 操作系统支持未屏蔽的SIMD浮点异常(中的位10)，表明操作系统通过异常处理程序支持非屏蔽的SIMD浮点异常的处理，
 // 该异常处理程序在SIMD浮点异常产生时被调用。
 // 操作系统必须正确的设置这一标志，如果这一标志没有设置，当处理器检测到非屏蔽SIMD浮点异常时，将会产生一个非法操作码异常(#UD)
 
@@ -78,24 +78,28 @@
 // 准备4kbx(2 - 4)大小的空间，存放页表，分别对应1gb、2mb、4kb的页面大小，存放pml4e、pdpe、pde和pte。注意2mb下pde是页表，而1gb下pdpe就是页表了。
 // 所有的页表项和目录项都是64位，共512项，正好4kb。其内容就是64位物理地址，而低n位被挪作他用。
 // 禁用cr0.pg[31]、cr0.em[2]，启用cr0.mp[1]，禁用分页，并启用sse
-// 启用cr4.osfxsr[9]、cr4.osxmmexcpt[10]、cr4.pae[5]、cr4.pge[7]，启用sse，pae和pge
+// 启用.osfxsr[9]、.osxmmexcpt[10]、.pae[5]、.pge[7]，启用sse，pae和pge
 // 将pml4装入cr3
 // 启用efer.lme[8]开启长模式
 // 启用cr0.pg[31]开启分页，进入64位兼容模式
 // 设置64位gdt，进入64位长模式
 /*长跳转至64位启动代码，保护模式结束*/
 
+//TF(bit 8) [Trap flag]   将该位设置为1以允许单步调试模式，清零则禁用该模式
+
+
+
 
 void initDebugger() {
+	enableDE();
+
 	__asm {
 		//mov eax,cr4
 		__emit 0x0f
 		__emit 0x20
 		__emit 0xe0
 
-		or eax, 8
-
-		or eax,100h		//pce enable rdpmc
+		//or eax, 8		//DE
 
 		//mov cr4,eax
 		__emit 0x0f
@@ -109,66 +113,165 @@ void initDebugger() {
 }
 
 
-void __kBreakPoint( unsigned int * regs) {
+
+void __declspec(naked) BreakPointTrap(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss,ax
+	}
+
+	{
+		__kBreakPoint(stack);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+	}
+}
+
+void __declspec(naked) DebugTrap(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss,ax
+	}
+
+	{
+		__kDebugger(stack);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+	}
+}
+
+//Software-generated exceptions are not influenced by the IR bit map. INT1,[1] INT3, INTO, 
+//and BOUND[2] are not subject to the IR bit map. Instead, these opcodes will always invoke the protected mode exception handler.[3]
+
+void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 
 	char szout[1024];
+
+#ifdef VM86_PROCESS_TASK
+
+#else
+	if (stack->eflags & 0x20000)
+	{
+		__kVm86IntProc();
+		return;
+	}
+#endif
+
 	int len = 0;
 
-	unsigned short segDs = 0;
-	unsigned short segEs = 0;
-	unsigned short segFs = 0;
-	unsigned short segGs = 0;
-	unsigned short segSs = 0;
+	unsigned char code = *(unsigned char*)stack->eip;
+	if (code == 0xcc) {
+		stack->eip++;
+		__printf(szout,"int3(0xcc) is exception\r\n");
+	}
+	else {
+		//__printf(szout, "int3(0xcc) is trap\r\n");
+	}
+
 	DWORD eflags = 0;
 	__asm {
-		mov ax, ds
-		mov segDs, ax
-
-		mov ax, es
-		mov segEs, ax
-
-		mov ax, fs
-		mov segFs, ax
-
-		mov ax, gs
-		mov segGs, ax
-
-		mov ax, ss
-		mov segSs, ax
-
-		//cpu not clear IF when enter interruptions
+		//cpu clear IF when enter interruptions
 		pushfd
 		pop ss:[eflags]
 	}
 
-	if (regs[10] & 0x20000)
+	if (stack->eflags & 0x20000)
 	{
 		len = __printf(szout,
-			"eax:%x,ecx:%x,edx:%x,ebx:%x,kernel esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,v86 cs:%x,current eflags:%x,eflags:%x,v86 esp:%x,v86 ss:%x,v86 ds:%x,v86 es:%x,v86 fs:%x,v86 gs:%x\n",
-			regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7], regs[8], regs[9], eflags, regs[10], regs[11], regs[12],
-			regs[14], regs[13], regs[15], regs[16]);
+			"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp0:%x,ebp:%x,esi:%x,edi:%x,eip:%x,vm86 cs:%x,current eflags:%x,stack eflags:%x,vm86 esp:%x,vm86 ss:%x,vm86 ds:%x,vm86 es:%x,vm86 fs:%x,vm86 gs:%x\n",
+			stack->eax, stack->ecx, stack->edx, stack->ebx, stack->esp, stack->ebp, stack->esi, stack->edi, 
+			stack->eip, stack->cs, eflags, stack->eflags, stack->esp3, stack->ss3,stack->ds_v86, stack->es_v86, stack->fs_v86, stack->gs_v86);
 	}
-	else if (regs[9] & 3)
+	else if (stack->cs & 3)
 	{
 		len = __printf(szout,
-			"eax:%x,ecx:%x,edx:%x,ebx:%x,kernel esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,eflags:%x,user esp:%x,user ss:%x,ds:%x,es:%x,fs:%x,gs:%x,kernel ss:%x\n",
-			regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7], regs[8], regs[9], eflags, regs[10], regs[11], regs[12],
-			segDs, segEs, segFs, segGs, segSs);
+			"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,stack eflags:%x,esp3:%x,ss3:%x,ds:%x,es:%x,fs:%x,gs:%x,ss:%x\n",
+			stack->eax, stack->ecx, stack->edx, stack->ebx, stack->esp, stack->ebp, stack->esi, stack->edi, 
+			stack->eip, stack->cs, eflags, stack->eflags, stack->esp3, stack->ss3,
+			stack->ds, stack->es, stack->fs, stack->gs,stack->ss);
 	}
 	else {
 		len = __printf(szout,
-			"eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,eflags:%x,ds:%x,es:%x,fs:%x,gs:%x,kernel ss:%x\n",
-			regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7], regs[8], regs[9],eflags, regs[10],
-			segDs, segEs, segFs, segGs, segSs);
+			"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,stack eflags:%x,ds:%x,es:%x,fs:%x,gs:%x,ss:%x\n",
+			stack->eax, stack->ecx, stack->edx, stack->ebx, stack->esp, stack->ebp, stack->esi, stack->edi,stack->eip, stack->cs, eflags, stack->eflags,
+			stack->ds, stack->es, stack->fs, stack->gs, stack->ss);
 	}
 
-	__drawGraphChars((unsigned char*)szout, 0);
 	return;
 }
 
+//DR0 - DR3
+//Contain linear addresses of up to 4 breakpoints.If paging is enabled, they are translated to physical addresses.
+
+// DR6 It permits the debugger to determine which debug conditions have occurred.
+//Bits 0 through 3 indicates, when set, that it's associated breakpoint condition was met when a debug exception was generated.
+//Bit 13 indicates that the next instruction in the instruction stream accesses one of the debug registers.
+//Bit 14 indicates(when set) that the debug exception was triggered by the single - step execution mode(enabled with TF bit in EFLAGS).
+//Bit 15 indicates(when set) that the debug instruction resulted from a task switch where T flag in the TSS of target task was set.
+//Bit 16 indicates(when clear) that the debug exception or breakpoint exception occured inside an RTM region.
 
 
-void __kDebugger(unsigned int * regs) {
+void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 
 	char szout[1024];
 	int len = 0;
@@ -186,20 +289,27 @@ void __kDebugger(unsigned int * regs) {
 			and eax,0xffffdfff
 			mov dr7,eax
 		}
-		len = __printf(szout, "BD debugger\r\n");
+		len = __printf(szout, "BD BreakPoint eip:%x,cs:%x\r\n",stack->eip,stack->cs);
 
 	}
 	
 	if (reg_dr6 & 0x4000)	//BS
 	{
-		len = __printf(szout, "BS debugger\r\n");
+		len = __printf(szout, "Single Step BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
 
-		__kBreakPoint(regs);
+		//__kBreakPoint(stack);
+
+		DWORD eflags = stack->eflags;
+		if (eflags & 0x100)
+		{
+			eflags = eflags & 0xfffffeff;
+			stack->eflags = eflags;
+		}
 	}
 	
 	if (reg_dr6 & 0x8000)	//BT
 	{
-		len = __printf(szout, "BT debugger\r\n");
+		len = __printf(szout, "TSS Trap BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
 
 	}
 
@@ -286,11 +396,18 @@ void __kDebugger(unsigned int * regs) {
 		mov[reg_dr6], eax
 	}
 
-	DWORD eflags = regs[10];
-	if (eflags & 0x10000)
+	//RF 标志的主要功能是许可从调试异常（调试断点引发的）后面的那个指令开始继续执行。
+	//调试软件必须在用IRETD 指令返回到被中断程序之前，将栈中的EFLAGES 映象中的该位置为1，以阻止指令断点产生另外的调试异常。
+
+	//调试中断会在执行指令前触发，在返回并成功执行断点指令之后，处理器会自动清零该位，从而许可继续产生指令断点故障。
+	//从中断返回的时候，如果不置RF的话，会再次进入调试中断，RF就是为了防止重复进入调试中断而使用的。
+
+	DWORD eflags = stack->eflags;
+	if ( (eflags & 0x10000) == 0)
 	{
-		eflags = eflags & 0xfffeffff;
-		regs[10] = eflags;
+		//eflags = eflags & 0xfffeffff;
+		eflags = eflags | 0x10000;
+		stack->eflags = eflags;
 	}
 }
 
@@ -563,13 +680,17 @@ int codeBreakPoint(unsigned int * addr,int len) {
 
 
 
-void __kdBreakPoint() {
+void __enableBreakPoint() {
+
 	__asm {
-		int 3
+		//_emit 0xcd
+		//_emit 03
+
+		int 3	//int 3 is different with int3 in linux gcc
 	}
 }
 
-int enterSingleStep() {
+int enableSingleStep() {
 	//single step
 	__asm {
 		pushfd
@@ -579,7 +700,7 @@ int enterSingleStep() {
 }
 
 
-int clearSingleStep() {
+int disableSingleStep() {
 	//single step
 	__asm {
 		pushfd
@@ -589,7 +710,7 @@ int clearSingleStep() {
 }
 
 
-int enterGdDebugger() {
+int enableGdDebugger() {
 
 	__asm {
 		mov eax, dr7
@@ -598,7 +719,7 @@ int enterGdDebugger() {
 	}
 }
 
-int clearGdDebugger() {
+int disableGdDebugger() {
 
 	__asm {
 		mov eax, dr7
@@ -606,4 +727,24 @@ int clearGdDebugger() {
 		mov dr7, eax
 	}
 }
+
+//only be effective in ring0
+void enableOverflow() {
+	__asm {
+		pushfd
+		or ss:[esp],0x800
+		popfd
+
+		_emit 0xce
+	}
+}
+
+
+//int 1
+void enableDebugger() {
+	__asm {
+		_emit 0xF1
+	}
+}
+
 

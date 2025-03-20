@@ -19,65 +19,73 @@
 
 void __kFreeProcess(int pid) {
 
-	freeProcessMemory();
+	freeProcessMemory(pid);
 
-	//do not need to free stack esp0
-	freeProcessPages();
-
-	//clearcr3();
+	freeProcessPages(pid);
 
 	//destroyWindows();
 }
 
 
 //1 先停止代码，然后释放内存，顺序不能反
-//2 先停止其他线程，然后停止本线程，顺序不能反了
-void __terminateProcess(int vpid, char * filename, char * funcname, DWORD lpparams) {
+//2 先停止其他线程，然后停止本线程，顺序不能反
+//3 any thread of process can call this to terminate process resident in
+// any process can call this to terminate self to other process with dwtid
+//above so,the most import element is dwtid
+extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 
-	int pid = vpid & 0x7fffffff;
+	int tid = dwtid & 0x7fffffff;
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+
+	LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+
+	int pid = tss[tid].pid;
 
 	char szout[1024];
 
-	int retvalue = 0;
-	__asm {
-		mov retvalue, eax
+	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid) {
+		__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
+			tid, pid, current->pid, current->tid, filename, funcname);
+		return;
 	}
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	if (tss->pid != pid)
-	{
-		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s,current pid:%x not equal\n",
-			pid, filename, funcname, tss->pid);
-	}
-	else {
-		__printf(szout, "__terminateProcess pid:%x,filename:%s,funcname:%s\n", pid, filename, funcname);
-	}
+	
+	//__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
 
 	LPPROCESS_INFO process = 0;
-	TASK_LIST_ENTRY * p = 0;
-	do 
-	{
-		p = __findProcessByPid(pid);
-		if (p == 0)
+
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+
+		if ((tss[i].status == TASK_RUN) && (tss[i].pid == pid))
 		{
-			break;
-		}
-		else if ( p->process->pid != p->process->tid)
-		{
-			TASK_LIST_ENTRY * list = removeTaskList(p->process->tid);
-		}
-		else {
-			process = p->process;
-		}
-	} while (p);
+			if (tss[i].pid != tss[i].tid) {
+				tss[i].status = TASK_TERMINATE;
 
-	__kFreeProcess(tss->pid);
+			}
+			else {
+				process = &tss[i];
+			}
+		}
+	}
 
-	removeTaskList(process->pid);
+	tss[process->pid].status = TASK_TERMINATE;
 
-	if (vpid & 0x80000000)
+	__kFreeProcess(pid);
+
+	if (current->tid == tid)
 	{
-		__sleep(0);
+		current->status = TASK_TERMINATE;
+	}
+	else {
+		//do nothing
+	}
+
+	int retvalue = 0;
+
+	tss[process->pid].retValue = retvalue;
+	if (dwtid & 0x80000000) {
+		return;
 	}
 	else {
 		__sleep(-1);
@@ -86,14 +94,28 @@ void __terminateProcess(int vpid, char * filename, char * funcname, DWORD lppara
 
 
 
-int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, char * funcname,DWORD level, DWORD runparam) 
+int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, char * funcname,DWORD level, DWORD param) 
 {
 	int result = 0;
 
 	char szout[1024];
 
-	tss->tss.trap = 1;
-	tss->tss.ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
+	tss->pid = tid;
+	tss->tid = tid;
+	tss->tss.trap = 0;
+	tss->tss.ldt = 0;
+	tss->fpu = TRUE;
+
+	DWORD syslevel = level & 3;
+	tss->level = syslevel;
+
+	DWORD eflags = 0x200202;	//if = 1,et = 1
+	if (syslevel)
+	{
+		eflags |= (syslevel << 12);	//iopl = 3
+	}
+	//eflags |= 0x4000;		//nt == 1
+	tss->tss.eflags = eflags;
 
 	tss->tss.iomapOffset = 136;
 	tss->tss.iomapEnd = 0xff;
@@ -105,15 +127,14 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	DWORD vaddr = tss->vaddr + tss->vasize;
 	DWORD imagesize = getSizeOfImage((char*)filedata);
 	DWORD alignsize = 0;
-	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize,pid, vaddr);
+	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
 		return FALSE;
 	}
-	tss->vasize += alignsize;
 
-	tss->moduleaddr = pemap;
+	tss->moduleaddr = tss->vaddr + tss->vasize;
 	tss->moduleLinearAddr = USER_SPACE_START;
 
 	//__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->vaddr);
@@ -132,7 +153,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 			return FALSE;
 		}
 		else {
-			//getAddrFromName 已经加了一个pemap，所以必须减去它
+			//getAddrFromName 已经加上了pemap，所以必须减去它
 			entry = entry - pemap + USER_SPACE_START;
 		}
 	}
@@ -140,7 +161,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		entry = getEntry((char*)pemap) + USER_SPACE_START;
 	}
 
-#ifdef DISABLE_PAGE_REDIRECTION
+#ifdef DISABLE_PAGE_MAPPING
 	tss->tss.eip = entry - USER_SPACE_START + pemap;
 	relocTableV((char*)pemap, pemap);
 	importTable((DWORD)pemap);
@@ -154,29 +175,14 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 
 	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
 	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
-	if (level & 3)
-	{
-		//copyPdeTables(0, USER_SPACE_START, (DWORD*)tss->tss.cr3);
-	}
-	else {
-		//copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
-	}
-	copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
+	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
+	//tss->tss.cr3 = PDE_ENTRY_VALUE;
 
-#ifndef DISABLE_PAGE_REDIRECTION
-	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
+#ifndef DISABLE_PAGE_MAPPING
+	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #endif
 
-	DWORD syslevel = level & 3;
-	tss->level = syslevel;
 
-	DWORD eflags = 0x210;	//if = 1,et = 1
-	if (syslevel)
-	{
-		eflags |= (syslevel<<12);	//iopl = 3
-	}
-	//eflags |= 0x4000;		//nt == 1
-	tss->tss.eflags = eflags;
 
 	tss->tss.eax = 0;
 	tss->tss.ecx = 0;
@@ -185,11 +191,11 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = TASKS_STACK0_BASE + (pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	tss->tss.esp0 = TASKS_STACK0_BASE + (tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
-	DWORD espsize = 0;
 	vaddr = tss->vaddr + tss->vasize;
+	DWORD espsize = 0;
 	LPTASKPARAMS params = 0;
 	DWORD heapsize = 0;
 	if (syslevel == 0)
@@ -201,15 +207,15 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize,pid, vaddr);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
-		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+#ifndef DISABLE_PAGE_MAPPING
+		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -224,15 +230,13 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 #endif
 		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE  - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
-#ifdef TASK_SINGLE_TSS
+#ifdef SINGLE_TASK_TSS
 		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
 		ret0->cs = tss->tss.cs;
 		ret0->eip = tss->tss.eip;
 		ret0->eflags = tss->tss.eflags;
-		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		//tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		//tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
+		tss->tss.esp = (DWORD)ret0;
+		tss->tss.ebp = (DWORD)ret0;
 #else
 		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
@@ -247,15 +251,15 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		tss->tss.cs = USER_MODE_CODE | syslevel ;
 		tss->tss.ss = USER_MODE_STACK | syslevel ;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize,pid, vaddr);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
-		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+#ifndef DISABLE_PAGE_MAPPING
+		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -270,7 +274,7 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 #endif
 		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
-#ifdef TASK_SINGLE_TSS
+#ifdef SINGLE_TASK_TSS
 		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 
@@ -292,37 +296,38 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 		heapsize = UTASK_STACK_SIZE;
 	}
 	
-	tss->vasize += espsize;
 	vaddr = tss->vaddr + tss->vasize;
-
-	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, pid, vaddr);	
-#ifndef DISABLE_PAGE_REDIRECTION
-	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
+	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+#ifndef DISABLE_PAGE_MAPPING
+	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	tss->heapbase = vaddr;
 #else
 	tss->heapbase = heapbase;
 #endif
 	tss->heapsize = heapsize;
-	tss->vasize += heapsize;
 	
-	params->terminate = (DWORD)__terminateProcess;
-	params->terminate2 = (DWORD)__terminateProcess;
-	params->tid = pid;
+	DWORD funTerminate = (DWORD)getAddrFromName(KERNEL_DLL_BASE, "__terminateProcess");
+	params->terminate = (DWORD)funTerminate;
+	params->terminate2 = (DWORD)funTerminate;
+	params->tid = tid;
 	__strcpy(params->szFileName, filename);
 	params->filename = params->szFileName;
 	__strcpy(params->szFuncName, funcname);
 	params->funcname = params->szFuncName;
 	params->lpcmdparams = &params->cmdparams;
-	if (runparam)
+	if (param)
 	{
-		__memcpy((char*)params->lpcmdparams, (char*)runparam, sizeof(TASKCMDPARAMS));
+		__memcpy((char*)params->lpcmdparams, (char*)param, sizeof(TASKCMDPARAMS));
+	}
+	else {
+		params->lpcmdparams = 0;
 	}
 
 	tss->counter = 0;
 	tss->errorno = 0;
 
-	tss->pid = pid;
-	tss->tid = pid;
+	tss->pid = tid;
+	tss->tid = tid;
 	__strcpy(tss->filename, filename);
 	__strcpy(tss->funcname, funcname);
 
@@ -332,10 +337,10 @@ int __initProcess(LPPROCESS_INFO tss, int pid, DWORD filedata, char * filename, 
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 
-	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",
-	//getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
+	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
 
-	addTaskList(tss->tid);
+	//addTaskList(tss->tid);
+	tss->status = TASK_RUN;
 
 	return TRUE;
 }
@@ -373,7 +378,7 @@ int __kCreateProcessFromAddrFunc(DWORD filedata, int filesize,char * funcname,in
  	char filename[1024];
 // 	__getDateTimeStr(filename);
 
-	__printf(filename, "process_%x", *(unsigned int*)TIMER0_TICK_COUNT);
+	__sprintf(filename, "process_%x", *((unsigned int*)TIMER0_TICK_COUNT));
 
 	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
 }
@@ -413,14 +418,14 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	}
 
 	int petype = getPeType(filedata);
-	if (petype == 1 || petype == 0)
+	if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
 	{
 		if (filesize == 0)
 		{
 			return FALSE;
 		}
 		else {
-			DWORD dosaddr = __initDosExe(filedata, filesize, result.number);
+			DWORD dosaddr = __allocVm86Addr(petype,filedata, filesize, result.number);
 			if (dosaddr)
 			{
 				ret = __initDosTss(result.lptss, result.number, dosaddr, filename, funcname, 3, params);

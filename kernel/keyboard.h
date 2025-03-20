@@ -3,7 +3,7 @@
 #ifndef KEYBOARD_H_H_H
 #define KEYBOARD_H_H_H
 
-#define KEYBORAD_BUF_SIZE 1024
+#define KEYBORAD_BUF_SIZE		1024
 
 #define SHIFTLEFT_SET_FLAG 		1
 #define SHIFTRIGHT_SET_FLAG 	2
@@ -60,8 +60,6 @@
 #define BC_F12 0X58
 #define VK_F12 123
 
-
-
 #define BC_INSERT 0X52
 #define VK_INSERT 45
 
@@ -92,8 +90,6 @@
 #define BC_DOWN 0X50
 #define VK_DOWN 40
 
-
-
 #define BC_CAPSLOCK 0X3A
 #define VK_CAPSLOCK 20
 
@@ -121,7 +117,6 @@
 
 #define VK_PRINT			0X2A
 
-
 #define BC_MENU 0X38
 #define VK_MENU 18
 
@@ -136,9 +131,8 @@
 
 
 
-
-
 #pragma pack(1)
+
 typedef struct {
 
 	unsigned int kbdBuf[KEYBORAD_BUF_SIZE];
@@ -148,9 +142,17 @@ typedef struct {
 	unsigned int kbdStatus;
 	unsigned int kbdLedStatus;
 }KBDBUFDATA,*LPKBDBUFDATA;
+
 #pragma pack()
 
+
+
+
+
+
 void kbdtest();
+
+extern "C" void KeyboardIntProc();
 
 void __kKbdLed(unsigned char cmd);
 
@@ -159,6 +161,8 @@ int numsLockProc(unsigned int c);
 int isScancodeAsc(unsigned char c);
 
 #ifdef DLL_EXPORT
+
+extern "C" __declspec(dllexport)WORD gKeyboardID;
 
 extern "C"  __declspec(dllexport) DWORD gKbdTest;
 
@@ -172,6 +176,8 @@ extern "C"  __declspec(dllexport) void __kKeyboardProc();
 
 extern "C"  __declspec(dllexport) void __kPutKbd(unsigned char s,int wid);
 #else
+
+extern "C" __declspec(dllimport) WORD gKeyboardID;
 
 extern "C"  __declspec(dllimport) DWORD gKbdTest;
 extern "C"  __declspec(dllimport) unsigned int __kGetKbd(int wid);

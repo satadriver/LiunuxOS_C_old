@@ -1,13 +1,13 @@
 
-#include "FAT32.h"
-#include "fat32file.h"
-#include "fileutils.h"
-#include "../Utils.h"
-#include "../satadriver.h"
-#include "../video.h"
-#include "FAT32Utils.h"
-#include "../FileManager.h"
-#include "../malloc.h"
+#include "fat32/FAT32.h"
+#include "fat32/fat32file.h"
+#include "fat32/fileutils.h"
+#include "Utils.h"
+#include "ata.h"
+#include "video.h"
+#include "fat32/FAT32Utils.h"
+#include "../FileBrowser.h"
+#include "malloc.h"
 
 
 int getFat32RootDirs(LPFAT32DIRECTORY dir,LPFILEBROWSER files) {
@@ -72,6 +72,7 @@ int getFat32NextDirs(DWORD clusterno, LPFILEBROWSER files) {
 
 int fat32FileReader(DWORD clusterno, int filesize,char * lpdata, int readsize) {
 
+	char szout[1024];
 	int ret = 0;
 	if (readsize > filesize)
 	{
@@ -99,7 +100,7 @@ int fat32FileReader(DWORD clusterno, int filesize,char * lpdata, int readsize) {
 			lpdata += g_ClusterSize;
 		}
 		else {
-			__drawGraphChars((unsigned char*)"fat32 read cluster error\n", 0);
+			__printf(szout,( char*)"fat32 read cluster error\n");
 			break;
 		}
 

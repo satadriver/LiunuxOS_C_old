@@ -9,31 +9,32 @@ typedef struct {
 	char name[256];
 }DLLMODULEINFO,*LPDLLMODULEINFO;
 
-
+/*
 typedef struct {
 	LIST_ENTRY list;
 	LPPROCESS_INFO process;
 	DWORD valid;
 }TASK_LIST_ENTRY;
+*/
 
 typedef struct {
-	DWORD ss;
-	DWORD gs;
-	DWORD fs;
-	DWORD es;
-	DWORD ds;
+	DWORD ss;	//0
+	DWORD gs;	//4
+	DWORD fs;	//8
+	DWORD es;	//12
+	DWORD ds;	//16
 	DWORD edi;
 	DWORD esi;
 	DWORD ebp;
-	DWORD esp;
+	DWORD esp;	//32
 	DWORD ebx;
 	DWORD edx;
 	DWORD ecx;
-	DWORD eax;
-	DWORD eip;
-	DWORD cs;
-	DWORD eflags;
-	DWORD esp3;
+	DWORD eax;	//48
+	DWORD eip;	
+	DWORD cs;	
+	DWORD eflags;	
+	DWORD esp3;	//64
 	DWORD ss3;
 	DWORD es_v86;
 	DWORD ds_v86;
@@ -46,23 +47,21 @@ typedef struct {
 #define DOS_TASK_OVER			0X20000000
 #define DOS_PROCESS_RUNCODE		0X80000000
 
-
-#define TASK_STATUS_PTR			0X80000000
 #define TASK_OVER				0
 #define TASK_RUN				1
 #define TASK_SUSPEND			2
+#define TASK_TERMINATE			3
 
 
-
-void prepareTss(LPPROCESS_INFO tss);
+void clearTssBuf(LPPROCESS_INFO tss);
 
 void tasktest();
 
-TASK_LIST_ENTRY* addTaskList(int tid);
+//TASK_LIST_ENTRY* addTaskList(int tid);
 
-TASK_LIST_ENTRY* removeTaskList(int tid);
+//TASK_LIST_ENTRY* removeTaskList(int tid);
 
-void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
+//void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 
 int __initTask();
 
@@ -81,15 +80,15 @@ extern "C"  __declspec(dllexport) int __terminateByFileName(char * filename);
 extern "C"  __declspec(dllexport) int __terminateByFuncName(char * funcname);
 
 
-extern "C"  __declspec(dllexport) TASK_LIST_ENTRY*  __findProcessByTid(int tid);
+extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByTid(int tid);
 
-extern "C"  __declspec(dllexport) TASK_LIST_ENTRY*  __findProcessByPid(int pid);
+extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByPid(int pid);
 
-extern "C"  __declspec(dllexport) TASK_LIST_ENTRY*  __findProcessFileName(char * filename);
+extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFileName(char * filename);
 
-extern "C"  __declspec(dllexport) TASK_LIST_ENTRY*  __findProcessFuncName(char * funcname);
+extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(char * funcname);
 
-extern "C"  __declspec(dllexport) int __createDosInFileTask(DWORD addr, char * filename);
+
 
 #else
 
@@ -103,15 +102,15 @@ extern "C"  __declspec(dllimport) int __terminateByFileName(char * filename);
 
 extern "C"  __declspec(dllimport) int __terminateByFuncName(char * funcname);
 
-extern "C"  __declspec(dllimport) TASK_LIST_ENTRY* __findProcessByTid(int tid);
+extern "C"  __declspec(dllimport) PROCESS_INFO * __findProcessByTid(int tid);
 
-extern "C"  __declspec(dllimport) TASK_LIST_ENTRY*  __findProcessByPid(int pid);
+extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessByPid(int pid);
 
-extern "C"  __declspec(dllimport) TASK_LIST_ENTRY*  __findProcessFileName(char * filename);
+extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFileName(char * filename);
 
-extern "C"  __declspec(dllimport) TASK_LIST_ENTRY*  __findProcessFuncName(char * funcname);
+extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(char * funcname);
 
-extern "C"  __declspec(dllimport) int __createDosInFileTask(DWORD addr, char * filename);
+
 #endif
 
 

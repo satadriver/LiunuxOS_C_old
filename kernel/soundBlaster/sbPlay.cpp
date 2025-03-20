@@ -2,6 +2,7 @@
 #include "sbPlay.h"
 #include "../Utils.h"
 #include "../file.h"
+#include "../hardware.h"
 
 //https://blog.csdn.net/weixin_33755847/article/details/93795780
 //http://homepages.cae.wisc.edu/~brodskye/sb16doc/sb16doc.html#ResetDSP
@@ -13,7 +14,22 @@ int gSoundBlast = 0;
 
 
 
-int writedsp(int value) {
+void writedsp(int value) {
+
+	int v = 0;
+	do {
+		v = inportb(SOUNDBLASTER_BASE_PORT + 0x0c);
+		if (v & 0x80) {
+			__sleep(0);
+			continue;
+		}
+		else {
+			outportb(SOUNDBLASTER_BASE_PORT + 0x0c, value);
+			break;
+		}
+	} while (TRUE);
+
+	/*
 	__asm {
 		push edx
 
@@ -29,9 +45,26 @@ int writedsp(int value) {
 		out dx,al
 		pop edx
 	}
+	*/
 }
 
 int readdsp() {
+	int v = 0;
+	do {
+		v = inportb(SOUNDBLASTER_BASE_PORT + 0x0e);
+		if ((v & 0x80) == 0) {
+			__sleep(0);
+			continue;
+		}
+		else {
+			v = inportb(SOUNDBLASTER_BASE_PORT + 0x0a);
+			break;
+		}
+	} while (TRUE);
+
+	return v;
+
+	/*
 	__asm {
 		push edx
 		_readdspWait :
@@ -48,9 +81,15 @@ int readdsp() {
 		movzx eax,al
 		pop edx
 	}
+	*/
 }
 
 int initdsp() {
+
+	outportb(SOUNDBLASTER_BASE_PORT + 0x06, 1);
+	outportb(SOUNDBLASTER_BASE_PORT + 0x06, 0);
+
+	/*
 	__asm {
 		push edx
 		mov dx, SOUNDBLASTER_BASE_PORT
@@ -61,7 +100,7 @@ int initdsp() {
 		mov al,0
 		out dx,al
 		pop edx
-	}
+	}*/
 
 	int ret = readdsp();
 	if (ret == 0xaa)
@@ -106,6 +145,23 @@ end;
 int initdma8(int addr,int firstsize,int bits) {
 	unsigned char dmaseg = addr / 0x10000;
 
+	outportb(0x0a, 5);
+	outportb(0x0c, 0);
+	outportb(0x0b, 0x59);
+
+	outportb(0x02, 0);
+	outportb(0x02, 0);
+
+	outportb(0x83, dmaseg);
+
+	outportb(0x03, (firstsize-1)&0xff);
+	outportb(0x03, ((firstsize - 1)>>8) & 0xff);
+
+	outportb(0x0a, 1);
+
+	return 0;
+
+	/*
 	__asm {
 		push edx
 
@@ -145,11 +201,28 @@ int initdma8(int addr,int firstsize,int bits) {
 
 		pop edx
 	}
+	*/
 }
 
 int initdma16(int addr, int firstsize, int bits) {
 	unsigned char dmaseg = addr / 0x10000;
 
+	outportb(0xd4, 5);
+	outportb(0xd8, 0);
+	outportb(0xd6, 0x59);
+
+	outportb(0xc4, 0);
+	outportb(0xc4, 0);
+
+	outportb(0x8b, dmaseg);
+
+	outportb(0xc6, (firstsize - 1) & 0xff);
+	outportb(0xc6, ((firstsize - 1) >> 8) & 0xff);
+
+	outportb(0xd4, 1);
+	return 0;
+
+	/*
 	__asm {
 		push edx
 
@@ -190,10 +263,11 @@ int initdma16(int addr, int firstsize, int bits) {
 
 		pop edx
 	}
+	*/
 }
 
 
-int dspplay(unsigned short rate,int mode,int firstsize) {
+int dspplay(unsigned int rate,int mode,int firstsize) {
 	 
 	writedsp(0x41);
 	writedsp(rate >> 8);
@@ -407,6 +481,7 @@ void __kSoundInterruptionProc() {
 
 	if (gWavFormat->wBitsPerSample == 8)
 	{
+		inportb(SOUNDBLASTER_BASE_PORT + 0x0e);
 		__asm {
 			mov dx, SOUNDBLASTER_BASE_PORT
 			add dx, 0eh
@@ -415,10 +490,63 @@ void __kSoundInterruptionProc() {
 	}
 	else if (gWavFormat->wBitsPerSample == 16)
 	{
+		inportb(SOUNDBLASTER_BASE_PORT +0x0f);
 		__asm {
 			mov dx, SOUNDBLASTER_BASE_PORT
 			add dx, 0fh
 			in al, dx
 		}
+	}
+}
+
+
+
+void __declspec(naked) SoundInterruptProc(LIGHT_ENVIRONMENT* stack) {
+
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss,ax
+	}
+
+	{
+		char szout[1024];
+		__printf(szout, "SoundInterruptProc!\r\n");
+
+		__kSoundInterruptionProc();
+
+		outportb(0x20, 0x20);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
 	}
 }

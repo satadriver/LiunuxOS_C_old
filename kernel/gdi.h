@@ -77,13 +77,14 @@ typedef struct {
 extern "C" __declspec(dllexport) DWORD showIcon(int x, int y, LPBITMAPINFOHEADER lpbmpinfo);
 
 int showTxtFile(char * filename);
+
 int setCursor(unsigned char high8bits, unsigned char low8bits);
 
 void sphere(int x, int y, int raduis, DWORD color, unsigned char* backup);
 
 void sphere7(int x, int y, int raduis, DWORD color, unsigned char* backup);
 
-extern "C" __declspec(dllexport) int repeatDrawCCFontString();
+extern "C" __declspec(dllexport) int displayCCPoem();
 
 int initCCFont();
 

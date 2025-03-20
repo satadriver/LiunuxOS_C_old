@@ -6,6 +6,11 @@
 ipch/
 *.ipch
 *.opendb
+*.tlog
+*.log
+*.1.tlog
+*.VC.db-shm
+*.VC.db-wal
 
 # Object files
 *.o
@@ -21,6 +26,8 @@ ipch/
 # Precompiled Headers
 *.gch
 *.pch
+*.suo
+*.tlog
 
 # Libraries
 *.lib

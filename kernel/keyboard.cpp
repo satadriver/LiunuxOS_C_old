@@ -2,13 +2,15 @@
 #include "window.h"
 #include "hardware.h"
 #include "Utils.h"
-#include "screenUtils.h"
+#include "screenProtect.h"
 #include "process.h"
 #include "task.h"
+#include "device.h"
+#include "servicesProc.h"
 
 DWORD gKbdTest = FALSE;
 
-
+WORD gKeyboardID = 0;
 
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
 unsigned char ScanCodesBuf[96] =
@@ -43,8 +45,11 @@ unsigned int __getchar(int wid) {
 	if (isTopWindow(wid))
 	{
 		__asm {
+			push wid
+			mov edi,esp
 			mov eax, 1
 			int 80h
+			add esp,4
 		}
  	}
 	else {
@@ -242,13 +247,15 @@ void __kKeyboardProc() {
 
 	unsigned int c = inportb(0x60);
 
+	char szout[1024];
+
 	unsigned int result = 0;
 
 	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
 	if (c == 1 && (data->kbdStatus & CTRLLEFT_SET_FLAG))
 	{
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-		__terminateProcess(tss->pid | 0x80000000,tss->funcname,tss->filename,0);
+		//__terminateProcess(tss->pid | 0x80000000,tss->funcname,tss->filename,0);
 		return;
 	}
 
@@ -309,7 +316,8 @@ void __kKeyboardProc() {
 
 	else if (c == 0x53 )	//delete
 	{
-		if ( (data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || (data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG))  )
+		if ( (data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || 
+			(data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG))  )
 		{
 			__reset();
 		}
@@ -431,8 +439,8 @@ void __kKeyboardProc() {
 
 			if (__memcmp(pb,"\xe1\x1d\x45\xe1\x9d\xc5",6) == 0 )
 			{
-				//make code is "\xe1\x1d\x45\xe1\x9d\xc5",but no break code!
-				__drawGraphChars((unsigned char*)"get Pause/Break key!\r\n",0);
+				//make code is "\xe1\x1d\x45\xe1\x9d\xc5",but no break code!按下后6个字节扫描码，松开后不产生扫描码
+				__printf(szout, ( char*)"get Pause/Break key!\r\n");
 				pauseBreak();
 			}
 
@@ -462,8 +470,6 @@ void __kKeyboardProc() {
 
 // 	char szout[1024];
 // 	__printf(szout, "input key:%x,status:%x\n", c, data->kbdStatus);
-// 	__drawGraphChars((unsigned char*)szout, 0);
-
 
 	data->kbdBuf[data->kbdBufHdr] = c;
 	data->kbdStatusBuf[data->kbdBufHdr] = data->kbdStatus;
@@ -480,63 +486,26 @@ void __kKeyboardProc() {
 	}
 }
 
-void __waitPs2Out() {
-	unsigned char status = 0;
-	do
-	{
-		status = inportb(0x64);
-	} while ( (status & 1) == 0);
-}
 
-
-
-void __waitPs2In() {
-	unsigned char status = 0;
-	do
-	{
-		status = inportb(0x64);
-	} while (status & 2);
-}
 
 void __kKbdLed(unsigned char cmd) {
-	__asm {
-		//; disable keyboard
-		call __waitPs2In
-		mov al, 0adh
-		out 64h, al
+	__waitPs2In();
+	outportb(0x64, 0xad);	//; disable keyboard
 
-		//; send ED command to 8048, not 8042 in cpu bridge
-		call __waitPs2In
-		mov al, 0edh
-		out 60h, al
+	__waitPs2In();
+	outportb(0x60, 0xed);		//; send ED command to 8048, not 8042 in cpu bridge
 
-		//; 任何时候收到一个来自于60h端口的合法命令或合法数据之后，都回复一个FAh
-		call __waitPs2Out
-		in al, 60h
-		cmp al, 0fah
+	__waitPs2Out();
+	int ack = inportb(0x60);	
 
-		call __waitPs2In
-		//; send command data to 8048
-		mov al,byte ptr cmd
-		out 60h, al
-		call __waitPs2Out
-		//; here u get return byte 0fah, but why can't read it out ?
-		in al, 60h
-		cmp al, 0fah
+	__waitPs2In();
+	outportb(0x60, cmd);		//; send command data to 8048
 
-// 		; break the waiting
-// 		; call __waitPs2In
-// 		; mov al, 80h
-// 		; out 60h, al
-// 		; call __waitPs2Out
-// 		; in al, 60h
-// 		; cmp al, 0fah
+	__waitPs2Out();
+	ack = inportb(0x60);
 
-		//; enable keyboard
-		call __waitPs2In
-		mov al, 0aeh
-		out 64h, al
-	}
+	__waitPs2In();
+	outportb(0x64, 0xae);
 }
 
 
@@ -551,10 +520,60 @@ void kbdtest() {
 		DWORD pos = ( GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2)*gBytesPerPixel;
 
 		__sprintf(szout, "input key:%x,%s,status:%x\n", key,&key,status);
-		__drawGraphChar((unsigned char*)szout, 0, pos, TASKBARCOLOR);
+		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 
 		if (key == 0x1b) {
 			__kPutKbd(1,gKbdTest);
 		}
+	}
+}
+
+
+
+
+__declspec(naked) void KeyboardIntProc() {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov ax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		__kKeyboardProc();
+		outportb(0x20, 0x20);
+	}
+
+	__asm {
+		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0
+		mov eax, TURNON_SCREEN
+		int 80h
+
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
 	}
 }

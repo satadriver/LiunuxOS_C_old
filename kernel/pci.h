@@ -43,14 +43,37 @@
 // bit2为1表示采用64位地址，为0表示采用32位地址
 // bit3表示是否支持可预取
 
-//1111 1111 1111 1111 1111 1111 1111 1111
+
 #include "def.h"
 
-int listpci(DWORD* dst);
 
-//void showAllPciDevs();
 
-int getBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin);
+#pragma pack(push,1)
+
+typedef struct
+{
+	char low:2;
+	char reg : 5;
+	char reserved:1;
+
+	char func : 3;
+	char dev : 5;
+	char bus;
+	char unused : 7;
+	char enable : 1;
+
+}PCI_CONFIG_VALUE;
+
+
+#pragma pack(pop)
+
+
+
+extern "C" __declspec(dllexport) int listpci(DWORD * dst);
+
+DWORD makePciAddr(int bus, int dev, int func, int reg);
+
+int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd);
 
 int getNetcard(DWORD* regs, DWORD* dev, DWORD* irq);
 
@@ -61,6 +84,10 @@ int getSoundcard(DWORD* regs, DWORD* dev, DWORD* irq);
 int getSmbus(DWORD* regs, DWORD* dev, DWORD* irq);
 
 int getUsb(DWORD* regs, DWORD* dev, DWORD* irq);
+
+int getLPC(DWORD* regs, DWORD* dev, DWORD* irq);
+
+int getNorthBridge(DWORD* regs, DWORD* dev, DWORD* irq);
 
 #ifdef DLL_EXPORT
 

@@ -1,5 +1,5 @@
 #include "FAT32.h"
-#include "../satadriver.h"
+#include "../ata.h"
 #include "../Utils.h"
 #include "../video.h"
 #include "FileUtils.h"
@@ -22,7 +22,7 @@ int		gMaxDirsInPath		= 256;
 
 int fat32Init() {
 	int ret = 0;
-	
+	char szout[1024];
 	readFile = readFat32File;
 	writeFile = writeFat32File;
 
@@ -36,10 +36,11 @@ int fat32Init() {
 // 	__drawGraphChars((unsigned char*)szshow, 0);
 // #endif
 
-	ret = getDBR();
+	ret = getFat32DBR();
 	if (ret <= 0)
 	{
-		__drawGraphChars((unsigned char*)"fat32 dbr format error\r\n", 0);
+		
+		__printf(szout, ( char*)"fat32 dbr format error\r\n");
 		return FALSE;
 	}
 
@@ -140,10 +141,19 @@ int isFAT32DBR(LPFAT32_DBR lpfat32dbr) {
 
 
 
-int getDBR() {
-	int secno = gMBR.dpt[0].offset;
-	int ret = readSector(secno,0, 1, (char*)&gFat32Dbr);
-	ret = isFAT32DBR(&gFat32Dbr);
+int getFat32DBR() {
+	int ret = 0;
+	
+	for (int i = 0; i < 4; i++) {
+		if (gMBR.dpt[i].flag & 0x80) {
+			int secno = gMBR.dpt[i].offset;
+			ret = readSector(secno, 0, 1, (char*)&gFat32Dbr);
+			ret = isFAT32DBR(&gFat32Dbr);
+			if (ret) {
+				break;
+			}
+		}
+	}
 
 	return ret;
 }
@@ -248,7 +258,7 @@ int getNextFAT32EmptyCluster(DWORD clusterno) {
 	
 	DWORD max = (gFat32Dbr.BPB_FATSz32*g_bytesPerSec) / sizeof(int);
 
-	int nextfreeclusno = clusterno;
+	DWORD nextfreeclusno = clusterno;
 	for (; nextfreeclusno < max;  nextfreeclusno++)
 	{
 		int clustervalue = glpFAT[nextfreeclusno];
@@ -268,7 +278,7 @@ unsigned int getLastClusterNo(LPFAT32DIRECTORY lpdir) {
 	unsigned int cno = getFirstClusterNo(lpdir);
 	while (1)
 	{
-		unsigned int value = glpFAT[cno];
+		int value = glpFAT[cno];
 		if (value == FAT_END_FLAG)
 		{
 			return cno;
@@ -304,7 +314,7 @@ unsigned short getClusterNoHigh(unsigned int clusterno) {
 	return (clusterno >> 16);
 }
 
-int isValidCluster(unsigned int no) {
+int isValidCluster( int no) {
 	if (no >= g_FirstClusterNO && no <= FAT_END_FLAG)
 	{
 		return TRUE;

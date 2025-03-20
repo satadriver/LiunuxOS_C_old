@@ -13,28 +13,38 @@ typedef struct
 }MYINT64,*LPMYINT64;
 
 
-typedef struct  
-{
-	WORD year;
-	WORD month;
-	WORD dayInMonth;
-	WORD dayInWeek;
-	WORD hour;
-	WORD minute;
-	WORD second;
-	WORD milisecond;
-}DATETIME,*LPDATETIME;
+
 
 #pragma pack()
 
 
+char* getMainboardDate();
+
+char* getComports();
+
+char* getKeyboardBuf();
+
+extern "C" __declspec(dllexport) char* getVGAInfo();
+
+void logInMem(char* data, int len);
+
+#define  __kPrintf(buf,format, ...) __printf(buf,format,__VA_ARGS__)
+
+int __kFormat(char* buf, char* format, DWORD* params);
+
+extern "C" __declspec(dllexport) int strlf2lf(double f, char* buf);
+extern "C" __declspec(dllexport) int strf2f(float f, char* buf);
+
+extern "C" __declspec(dllexport) int __i64ToStrd64( __int64 v, char* strd);
+
 #ifdef DLL_EXPORT
-extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime);
-extern "C"  __declspec(dllexport) int __getDateTimeStr(void * str);
+extern "C" __declspec(dllexport) char* gLogDataPtr;
 
 extern "C"  __declspec(dllexport) int __strlen(char * str);
 
 extern "C"  __declspec(dllexport) int __memcpy(char * dst, char * src, int len);
+
+extern "C"  __declspec(dllexport) int __wmemcpy(wchar_t* dst, wchar_t* src, int len);
 
 extern "C"  __declspec(dllexport) int __strcpy(char * dst, char * src);
 
@@ -51,17 +61,26 @@ extern "C"  __declspec(dllexport) char* __strstr(char * src, char * dst);
 
 extern "C"  __declspec(dllexport) int __strcat(char * src, char * dst);
 
-extern "C"  __declspec(dllexport) int __h2strh(unsigned int n, int lowercase, unsigned char * dst);
+extern "C"  __declspec(dllexport) int __wcscat(wchar_t* src, wchar_t* dst);
+extern "C"  __declspec(dllexport) int __wcscpy(wchar_t* dst, wchar_t* src);
+extern "C"  __declspec(dllexport) int __wcscat(wchar_t* src, wchar_t* dst);
+extern "C"  __declspec(dllexport) int __wcslen(wchar_t* s);
+extern "C"  __declspec(dllexport) int __wcscmp(wchar_t* src, wchar_t* dst);
+extern "C"  __declspec(dllexport) wchar_t* __wcsstr(wchar_t* src, wchar_t* dst);
 
-extern "C"  __declspec(dllexport) int __hstr2i(unsigned char * str);
+extern "C"  __declspec(dllexport) int __i2strh(unsigned int n, int lowercase, unsigned char * dst);
 
-extern "C"  __declspec(dllexport) int __h2strd(unsigned int h, char * strd);
+extern "C"  __declspec(dllexport) int __strh2i(unsigned char * str);
+
+extern "C"  __declspec(dllexport) int __i2strd(int h, char* strd);
+
+extern "C"  __declspec(dllexport) int __i2stru(unsigned int h, char * strd);
 
 extern "C"  __declspec(dllexport) int __strd2i(char * istr);
 
-extern "C"  __declspec(dllexport) int __printf(char * buf, char * format, ...);
+extern "C"  __declspec(dllexport) int __sprintf(char * buf, char * format, ...);
 
-extern "C"  __declspec(dllexport) int __sprintf(char * buf, char * format, ...); 
+extern "C"  __declspec(dllexport) int __printf(char * buf, char * format, ...); 
 
 extern "C"  __declspec(dllexport) int __dump(char * src, int len, int lowercase, unsigned char * dstbuf);
 
@@ -72,9 +91,6 @@ extern "C" __declspec(dllexport) int __strupr(char * str);
 
 extern "C" __declspec(dllexport) int __strlwr(char * str);
 
-extern "C" __declspec(dllexport) int timer0Wait(unsigned short);
-
-
 extern "C" __declspec(dllexport) int __shutdownSystem();
 extern "C" __declspec(dllexport) int __reset();
 
@@ -84,27 +100,31 @@ extern "C" __declspec(dllexport) int getCpuType(char * name);
 
 extern "C" __declspec(dllexport) int getCpuInfo(char * name);
 
-extern "C" __declspec(dllexport) unsigned int random();
-
 extern "C" __declspec(dllexport) int lower2upper(char *data, int len);
 
 extern "C" __declspec(dllexport) int upper2lower(char *data, int len);
-extern "C" __declspec(dllexport) DWORD __sqrtInteger(DWORD i);
 
 extern "C" __declspec(dllexport) WORD __ntohs(WORD v);
 
 extern "C" __declspec(dllexport)DWORD __ntohl(DWORD v);
-extern "C" __declspec(dllexport)DWORD __inc(DWORD *v);
-extern "C" __declspec(dllexport)void __initSpinLock(DWORD * v);
-extern "C" __declspec(dllexport)WORD __enterSpinLock(DWORD * v);
-extern "C" __declspec(dllexport)WORD __leaveSpinLock(DWORD * v);
+
+extern "C" __declspec(dllexport)DWORD __lockInc(DWORD *v);
+
+extern "C" __declspec(dllexport)void __initSpinlock(DWORD * v);
+extern "C" __declspec(dllexport)DWORD __enterSpinlock(DWORD * v);
+extern "C" __declspec(dllexport)DWORD __leaveSpinlock(DWORD * v);
+extern "C" __declspec(dllexport)DWORD __enterLock(DWORD* lockvalue);
+extern "C" __declspec(dllexport)DWORD __leaveLock(DWORD* lockvalue);
+
+extern "C"  __declspec(dllexport) int __spinlockEntry(void* lockv);
+
+extern "C"  __declspec(dllexport) int __spinlockLeave(void* lockv);
 
 extern "C" __declspec(dllexport) int asc2unicode(char * asc, int asclen, short * unicode);
 
 extern "C" __declspec(dllexport) int unicode2asc(short * unicode, int unicodelen, char * asc);
 #else
-extern "C"  __declspec(dllimport) int __getDateTime(LPDATETIME datetime);
-extern "C"  __declspec(dllimport) int __getDateTimeStr(void * str);
+
 extern "C"  __declspec(dllimport) int __strlen(char * str);
 
 extern "C"  __declspec(dllimport) int __memcpy(char * dst, char * src, int len);
@@ -124,17 +144,26 @@ extern "C"  __declspec(dllimport) char* __strstr(char * src, char * dst);
 
 extern "C"  __declspec(dllimport) int __strcat(char * src, char * dst);
 
-extern "C"  __declspec(dllimport) int __h2strh(unsigned int n, int lowercase, unsigned char * dst);
+extern "C"  __declspec(dllimport) int __wmemcpy(wchar_t* dst, wchar_t* src, int len);
 
-extern "C"  __declspec(dllimport) int __hstr2i(unsigned char * str);
+extern "C"  __declspec(dllimport) int __wcscat(wchar_t* src, wchar_t* dst);
+extern "C"  __declspec(dllimport) int __wcscpy(wchar_t* dst, wchar_t* src);
+extern "C"  __declspec(dllimport) int __wcscat(wchar_t* src, wchar_t* dst);
+extern "C"  __declspec(dllimport) int __wcslen(wchar_t* s);
+extern "C"  __declspec(dllimport) int __wcscmp(wchar_t* src, wchar_t* dst);
+extern "C"  __declspec(dllimport) wchar_t* __wcsstr(wchar_t* src, wchar_t* dst);
 
-extern "C"  __declspec(dllimport) int __h2strd(unsigned int h, char * strd);
+extern "C"  __declspec(dllimport) int __i2strh(unsigned int n, int lowercase, unsigned char * dst);
+
+extern "C"  __declspec(dllimport) int __strh2i(unsigned char * str);
+
+extern "C"  __declspec(dllimport) int __i2strd(unsigned int h, char * strd);
 
 extern "C"  __declspec(dllimport) int __strd2i(char * istr);
 
-extern "C"  __declspec(dllimport) int __printf(char * buf, char * format, ...);
-
 extern "C"  __declspec(dllimport) int __sprintf(char * buf, char * format, ...);
+
+extern "C"  __declspec(dllimport) int __printf(char * buf, char * format, ...);
 
 extern "C"  __declspec(dllimport) int __dump(char * src, int len, int lowercase, unsigned char * dstbuf);
 
@@ -145,9 +174,6 @@ extern "C" __declspec(dllimport) int __strupr(char * str);
 
 extern "C" __declspec(dllimport) int __strlwr(char * str);
 
-extern "C" __declspec(dllimport) int timer0Wait(unsigned short);
-
-
 extern "C" __declspec(dllimport) int __shutdownSystem();
 extern "C" __declspec(dllimport) int __reset();
 
@@ -157,21 +183,21 @@ extern "C" __declspec(dllimport) int getCpuType(char * name);
 
 extern "C" __declspec(dllimport) int getCpuInfo(char * name);
 
-extern "C" __declspec(dllimport) unsigned int random();
-
 extern "C" __declspec(dllimport) int lower2upper(char *data, int len);
 
 extern "C" __declspec(dllimport) int upper2lower(char *data, int len);
 
-extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
 
 
 extern "C" __declspec(dllimport)DWORD __ntohs(WORD v);
 extern "C" __declspec(dllimport)DWORD __ntohl(DWORD v);
-extern "C" __declspec(dllimport)DWORD __inc(DWORD *v);
-extern "C" __declspec(dllimport)void __initSpinLock(DWORD * v);
-extern "C" __declspec(dllimport)WORD __enterSpinLock(DWORD * v);
-extern "C" __declspec(dllimport)WORD __leaveSpinLock(DWORD * v);
+extern "C" __declspec(dllimport)DWORD __lockInc(DWORD *v);
+extern "C" __declspec(dllimport)void __initSpinlock(DWORD * v);
+extern "C" __declspec(dllimport)WORD __enterSpinlock(DWORD * v);
+extern "C" __declspec(dllimport)WORD __leaveSpinlock(DWORD * v);
+extern "C"  __declspec(dllexport) int __spinlockEntry(void* lockv);
+
+extern "C"  __declspec(dllexport) int __spinlockLeave(void* lockv);
 
 extern "C" __declspec(dllimport) int asc2unicode(char * asc, int asclen, short * unicode);
 

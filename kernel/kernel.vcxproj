@@ -22,7 +22,7 @@
     <ProjectGuid>{22AB469F-C5DA-4C43-AA87-401816E082D7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>kernel</RootNamespace>
-    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -71,18 +71,18 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,22 +90,30 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;KERNEL_DLL;DLL_EXPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;KERNEL_DLL;DLL_EXPORT;_DEBUG</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <StringPooling>false</StringPooling>
       <MinimalRebuild>false</MinimalRebuild>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <AdditionalOptions>/Gs8192 </AdditionalOptions>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <StackCommitSize>0x100000</StackCommitSize>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,10 +123,25 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;KERNEL_EXPORTS;%(PreprocessorDefinitions);DLL_EXPORT</PreprocessorDefinitions>
+      <AdditionalOptions>/Gs8192 </AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <StackCommitSize>0x100000</StackCommitSize>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -134,18 +157,23 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalOptions>/Gs8192</AdditionalOptions>
+      <AdditionalOptions>/Gs8192 </AdditionalOptions>
       <StringPooling>false</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <StackCommitSize>0x100000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,23 +185,38 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;KERNEL_EXPORTS;%(PreprocessorDefinitions);DLL_EXPORT</PreprocessorDefinitions>
+      <AdditionalOptions>/Gs8192 </AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <StackReserveSize>0x100000</StackReserveSize>
+      <StackCommitSize>0x100000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="acpi.cpp" />
     <ClCompile Include="apic.cpp" />
     <ClCompile Include="atapi.cpp" />
     <ClCompile Include="cmosAlarm.cpp" />
-    <ClCompile Include="cmosTimer.cpp" />
+    <ClCompile Include="cmosExactTimer.cpp" />
+    <ClCompile Include="cmosPeriodTimer.cpp" />
     <ClCompile Include="coprocessor.cpp" />
+    <ClCompile Include="core.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="descriptor.cpp" />
+    <ClCompile Include="device.cpp" />
+    <ClCompile Include="heap.cpp" />
+    <ClCompile Include="parallel.cpp" />
     <ClCompile Include="processDOS.cpp" />
     <ClCompile Include="elf.cpp" />
     <ClCompile Include="exception.cpp" />
@@ -185,7 +228,7 @@
     <ClCompile Include="file.cpp" />
     <ClCompile Include="floppy.cpp" />
     <ClCompile Include="gdi.cpp" />
-    <ClCompile Include="hpet.cpp" />
+    <ClCompile Include="acpi.cpp" />
     <ClCompile Include="ios9660\ios9660.cpp" />
     <ClCompile Include="hardware.cpp" />
     <ClCompile Include="listEntry.cpp" />
@@ -196,39 +239,46 @@
     <ClCompile Include="page.cpp" />
     <ClCompile Include="peVirtual.cpp" />
     <ClCompile Include="peResource.cpp" />
-    <ClCompile Include="rs232.cpp" />
-    <ClCompile Include="screenUtils.cpp" />
-    <ClCompile Include="satadriver.cpp" />
+    <ClCompile Include="queue.cpp" />
+    <ClCompile Include="rtl8139.cpp" />
+    <ClCompile Include="serialUART.cpp" />
+    <ClCompile Include="screenProtect.cpp" />
+    <ClCompile Include="ATA.cpp" />
     <ClCompile Include="kernel.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="pci.cpp" />
     <ClCompile Include="pe.cpp" />
-    <ClCompile Include="sectorReader.cpp" />
     <ClCompile Include="servicesProc.cpp" />
     <ClCompile Include="malloc.cpp" />
     <ClCompile Include="soundBlaster\sbPlay.cpp" />
     <ClCompile Include="speaker.cpp" />
-    <ClCompile Include="system.cpp" />
-    <ClCompile Include="systemTimer.cpp" />
+    <ClCompile Include="textMode.cpp" />
+    <ClCompile Include="timer8254.cpp" />
     <ClCompile Include="task.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="utils.cpp" />
-    <ClCompile Include="v86.cpp" />
+    <ClCompile Include="VM86.cpp" />
+    <ClCompile Include="vectorRoutine.cpp" />
     <ClCompile Include="video.cpp" />
+    <ClCompile Include="VMM.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="acpi.h" />
     <ClInclude Include="apic.h" />
     <ClInclude Include="atapi.h" />
     <ClInclude Include="cmosAlarm.h" />
-    <ClInclude Include="cmosTimer.h" />
+    <ClInclude Include="cmosExactTimer.h" />
+    <ClInclude Include="cmosPeriodTimer.h" />
     <ClInclude Include="coprocessor.h" />
+    <ClInclude Include="core.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="def.h" />
     <ClInclude Include="descriptor.h" />
+    <ClInclude Include="device.h" />
+    <ClInclude Include="heap.h" />
+    <ClInclude Include="parallel.h" />
     <ClInclude Include="processDOS.h" />
     <ClInclude Include="elf.h" />
     <ClInclude Include="exception.h" />
@@ -240,7 +290,7 @@
     <ClInclude Include="file.h" />
     <ClInclude Include="floppy.h" />
     <ClInclude Include="gdi.h" />
-    <ClInclude Include="hpet.h" />
+    <ClInclude Include="acpi.h" />
     <ClInclude Include="ios9660\ios9660.h" />
     <ClInclude Include="hardware.h" />
     <ClInclude Include="listEntry.h" />
@@ -251,27 +301,30 @@
     <ClInclude Include="page.h" />
     <ClInclude Include="peVirtual.h" />
     <ClInclude Include="peResource.h" />
-    <ClInclude Include="rs232.h" />
-    <ClInclude Include="screenUtils.h" />
-    <ClInclude Include="satadriver.h" />
+    <ClInclude Include="queue.h" />
+    <ClInclude Include="rtl8139.h" />
+    <ClInclude Include="serialUART.h" />
+    <ClInclude Include="screenProtect.h" />
+    <ClInclude Include="ATA.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="pci.h" />
     <ClInclude Include="Pe.h" />
-    <ClInclude Include="sectorReader.h" />
     <ClInclude Include="servicesProc.h" />
     <ClInclude Include="malloc.h" />
     <ClInclude Include="soundBlaster\sbPlay.h" />
     <ClInclude Include="speaker.h" />
-    <ClInclude Include="system.h" />
-    <ClInclude Include="systemTimer.h" />
+    <ClInclude Include="textMode.h" />
+    <ClInclude Include="timer8254.h" />
     <ClInclude Include="task.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="process.h" />
     <ClInclude Include="utils.h" />
-    <ClInclude Include="v86.h" />
+    <ClInclude Include="VM86.h" />
+    <ClInclude Include="vectorRoutine.h" />
     <ClInclude Include="video.h" />
+    <ClInclude Include="VMM.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

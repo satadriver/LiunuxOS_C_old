@@ -1,6 +1,6 @@
 
 #include "FAT32.h"
-#include "../satadriver.h"
+#include "../ata.h"
 #include "../Utils.h"
 #include "../video.h"
 #include "FAT32Utils.h"
@@ -239,7 +239,7 @@ LPFAT32DIRECTORY getDirFromFileName(char * filename, LPFAT32DIRECTORY  lpdir) {
 
 
 int clusterReader( LPFAT32DIRECTORY dir, char * buf, int readsize) {
-
+	char szout[1024];
 	int ret = 0;
 	if ((unsigned int)readsize > dir->size)
 	{
@@ -270,7 +270,7 @@ int clusterReader( LPFAT32DIRECTORY dir, char * buf, int readsize) {
 			lpdata += g_ClusterSize;
 		}
 		else {
-			__drawGraphChars((unsigned char*)"fat32 read cluster error\n", 0);
+			__printf(szout, ( char*)"fat32 read cluster error\n");
 			break;
 		}
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "def.h"
+#include "task.h"
 
 #define DATA_BREAKPOINT 		 1
 #define PORT_BREAKPOINT			 2
@@ -11,7 +12,9 @@
 
 void initDebugger();
 
+void  BreakPointTrap(LIGHT_ENVIRONMENT* stack);
 
+void  DebugTrap(LIGHT_ENVIRONMENT* stack);
 
 #ifdef DLL_EXPORT
 
@@ -20,32 +23,38 @@ extern "C" __declspec(dllexport) int ioBreakPoint(unsigned int * addr, int len);
 extern "C" __declspec(dllexport) int dataWBreakPoint(unsigned int * addr, int len);
 extern "C" __declspec(dllexport) int dataRWBreakPoint(unsigned int * addr, int len);
 
-extern "C" __declspec(dllexport) int enterSingleStep();
-extern "C" __declspec(dllexport) int clearSingleStep();
-extern "C" __declspec(dllexport) int enterGdDebugger();
-extern "C" __declspec(dllexport) int clearGdDebugger();
+extern "C" __declspec(dllexport) int enableSingleStep();
+extern "C" __declspec(dllexport) int disableSingleStep();
+extern "C" __declspec(dllexport) int enableGdDebugger();
+extern "C" __declspec(dllexport) int disableGdDebugger();
 
-extern "C" __declspec(dllexport) void __kdBreakPoint();
+extern "C" __declspec(dllexport) void enableDebugger();
 
-extern "C" __declspec(dllexport) void __kBreakPoint(unsigned int * regs);
+extern "C" __declspec(dllexport) void enableOverflow();
 
-extern "C" __declspec(dllexport) void __kDebugger(unsigned int * regs);
+extern "C" __declspec(dllexport) void __enableBreakPoint();
+
+extern "C" __declspec(dllexport) void __kBreakPoint(LIGHT_ENVIRONMENT * stack);
+
+extern "C" __declspec(dllexport) void __kDebugger(LIGHT_ENVIRONMENT * stack);
 #else
 extern "C" __declspec(dllimport) int codeBreakPoint(unsigned int * addr, int len);
 extern "C" __declspec(dllimport) int ioBreakPoint(unsigned int * addr, int len);
 extern "C" __declspec(dllimport) int dataWBreakPoint(unsigned int * addr, int len);
 extern "C" __declspec(dllimport) int dataRWBreakPoint(unsigned int * addr, int len);
 
-extern "C" __declspec(dllimport) int enterSingleStep();
-extern "C" __declspec(dllimport) int clearSingleStep();
-extern "C" __declspec(dllimport) int enterGdDebugger();
-extern "C" __declspec(dllimport) int clearGdDebugger();
+extern "C" __declspec(dllimport) int enableSingleStep();
+extern "C" __declspec(dllimport) int disableSingleStep();
+extern "C" __declspec(dllimport) int enableGdDebugger();
+extern "C" __declspec(dllimport) int disableGdDebugger();
 
-extern "C" __declspec(dllimport) void __kdBreakPoint();
+extern "C" __declspec(dllimport) void __enableBreakPoint();
 
-extern "C" __declspec(dllimport) void __kdBreakPoint();
+extern "C" __declspec(dllimport) void enableDebugger();
 
-extern "C" __declspec(dllimport) void __kBreakPoint(unsigned int * regs);
+extern "C" __declspec(dllimport) void enableOverflow();
 
-extern "C" __declspec(dllimport) void __kDebugger(unsigned int * regs);
+extern "C" __declspec(dllimport) void __kBreakPoint(LIGHT_ENVIRONMENT * stack);
+
+extern "C" __declspec(dllimport) void __kDebugger(LIGHT_ENVIRONMENT * stack);
 #endif

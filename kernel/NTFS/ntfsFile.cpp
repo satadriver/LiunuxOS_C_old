@@ -2,7 +2,7 @@
 #include "ntfs.h"
 #include "../fat32/fileutils.h"
 #include "../Utils.h"
-#include "../satadriver.h"
+#include "../ata.h"
 #include "../file.h"
 #include "../video.h"
 #include "../malloc.h"
@@ -25,11 +25,11 @@ int getDataRuns(char* data) {
 unsigned long long getIdxNextDir(char* filename, char* buf) {
 	int ret = 0;
 
-	//char szout[1024];
+	char szout[1024];
 
 	if (__memcmp(buf, "INDX", 4))
 	{
-		__drawGraphChars((unsigned char*)"getIdxNextDir format error\n", 0);
+		__printf(szout,( char*)"getIdxNextDir format error\n");
 		return FALSE;
 	}
 
@@ -38,7 +38,8 @@ unsigned long long getIdxNextDir(char* filename, char* buf) {
 	LPSTD_INDEX_ENTRY idxentry = (LPSTD_INDEX_ENTRY)(baseaddr + hdr->SIH_IndexEntryOffset);
 	while (1)
 	{
-		if (idxentry->SIE_IndexEntrySize >= hdr->SIH_IndexEntryAllocSize)
+
+		if (idxentry->SIE_IndexEntrySize >= hdr->SIH_IndexEntryAllocSize || idxentry->SIE_IndexEntrySize <= 0)
 		{
 			break;
 		}
@@ -48,32 +49,25 @@ unsigned long long getIdxNextDir(char* filename, char* buf) {
 			break;
 		}
 
-		int fnlen = idxentry->SIE_FileNameSize;
-		char* fn = (char*)((unsigned int)idxentry + sizeof(STD_INDEX_ENTRY) - 1);
-		char ascfn[256];
-		int asclen = unicode2asc((short*)fn, fnlen, ascfn);
-
-		ret = upper2lower(ascfn, __strlen(ascfn));
-
-		if (__strcmp(ascfn, filename) == 0)
+		if(idxentry->SIE_IndexEntrySize >= sizeof(STD_INDEX_ENTRY) )
 		{
-			return (idxentry->SIE_MFTReferNumber & NTFS_MFT_CLUSTER_NUMBER_MASK);
+			int fnlen = idxentry->SIE_FileNameSize;
+			char* fn = (char*)((unsigned int)idxentry + sizeof(STD_INDEX_ENTRY) - 1);
+			char ascfn[256];
+			int asclen = unicode2asc((short*)fn, fnlen, ascfn);
+
+			ret = upper2lower(ascfn, __strlen(ascfn));
+
+			if (__strcmp(ascfn, filename) == 0)
+			{
+				return (idxentry->SIE_MFTReferNumber & NTFS_MFT_CLUSTER_NUMBER_MASK);
+			}
 		}
 
-		if ((idxentry->SIE_MFTReferNumber & NTFS_MFT_CLUSTER_NUMBER_MASK) == 0 &&
-			(idxentry->SIE_IndexEntrySize < sizeof(STD_INDEX_ENTRY) /*|| idxentry->SIE_IndexEntrySize >= 0x200*/))
-		{
-			break;
-			//idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + 0x60);
-		}
-		else {
-			idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + idxentry->SIE_IndexEntrySize);
-		}
-
+		idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + idxentry->SIE_IndexEntrySize);
 	}
 
 	// 	__printf(szout, "getIdxNextDir not found file:%s\n", filename);
-	// 	__drawGraphChars((unsigned char*)szout, 0);
 	return FALSE;
 }
 
@@ -92,33 +86,34 @@ unsigned long long getRootNextDir(LPCommonAttributeHeader hdr, char* filename) {
 	unsigned int entrysize = ih->IH_TalSzOfEntries - sizeof(INDEX_HEADER);
 	while (1)
 	{
-		if ((entry->IE_MftReferNumber & NTFS_MFT_CLUSTER_NUMBER_MASK) == 0 || entry->IE_Size < sizeof(STD_INDEX_ENTRY))
-		{
-			break;
-		}
-
 		if ((unsigned int)entry - (unsigned int)lpentry >= entrysize)
 		{
 			break;
 		}
 
-		int fnlen = entry->IE_FileNameSize;
-		char* fn = (char*)((unsigned int)entry + sizeof(INDEX_ENTRY) - 1);
-		char ascfn[256];
-		int asclen = unicode2asc((short*)fn, fnlen, ascfn);
+		if (entry->IE_Size <= 0 || entry->IE_Size >= entrysize) {
+			break;
+		}
 
-		ret = upper2lower(ascfn, __strlen(ascfn));
-
-		if (__strcmp(ascfn, filename) == 0)
+		if (entry->IE_Size >= sizeof(INDEX_ENTRY))
 		{
-			return (entry->IE_MftReferNumber & NTFS_MFT_CLUSTER_NUMBER_MASK);
+			int fnlen = entry->IE_FileNameSize;
+			char* fn = (char*)((unsigned int)entry + sizeof(INDEX_ENTRY) - 1);
+			char ascfn[256];
+			int asclen = unicode2asc((short*)fn, fnlen, ascfn);
+
+			ret = upper2lower(ascfn, __strlen(ascfn));
+
+			if (__strcmp(ascfn, filename) == 0)
+			{
+				return (entry->IE_MftReferNumber & NTFS_MFT_CLUSTER_NUMBER_MASK);
+			}
 		}
 
 		entry = (LPINDEX_ENTRY)((unsigned int)entry + entry->IE_Size);
 	}
 
 	//__printf(szout, "getRootNextDir not found file:%s\n", filename);
-	//__drawGraphChars((unsigned char*)szout, 0);
 
 	return FALSE;
 }
@@ -135,19 +130,17 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 	char msfinfo[MFTEntrySize * 2];
 
 	DWORD low = secoff & 0xffffffff;
-	DWORD high = (secoff >> 32);
+	DWORD high = (secoff >> 32) & 0xffff;
 	ret = readSector(low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
 	{
-		__printf(szout, "getNtfsDir readSector mft sector low:%x,high:%x error\n", low, high);
-
+		__printf(szout, "getNtfsDir readSector mft sector:%I64x error\n", secoff);
 		return FALSE;
 	}
 
 	if (__memcmp(msfinfo, "FILE", 4))
 	{
-		__printf(szout, "getNtfsDir mft format error in file:%s sector:%x\n", filename, low);
-
+		__printf(szout, "getNtfsDir mft format ERROR! file:%s sector:%I64x\n", filename, secoff);
 		return FALSE;
 	}
 
@@ -221,16 +214,15 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 
 					clsno += nextclsno;
 
-					__printf(szout, "searching filename:%s,previous path sector:%x,current cluster:%x,cluster total:%x in mft 0xA0\n",
+					__printf(szout, "ntfs read file:%s,sector:%I64x,cluster:%I64x,cluster total:%I64x in MFT\n",
 						filename, secoff, clsno, clscnt);
 		
-
 					//索引值的计算:隐藏扇区数+每簇扇区数 *索引簇号
 					//文件查找：A0中查找
 					unsigned long long idxsecoff = gNtfsDbr.hideSectors + clsno * g_SecsPerCluster;
 
 					DWORD low = idxsecoff & 0xffffffff;
-					DWORD high = idxsecoff >> 32;
+					DWORD high = (idxsecoff >> 32) & 0xffff;
 
 					int buffer_size = (int)(g_SecsPerCluster * clscnt * g_bytesPerSec);
 
@@ -241,8 +233,8 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 					{
 						__kFree((DWORD)buffer);
 
-						__printf(szout, "getNtfsDir readSector error in file:%s,sector:%x,sector count:%x in 0xA0\n",
-							filename, (DWORD)idxsecoff, g_SecsPerCluster * clscnt);
+						__printf(szout, "getNtfsDir readSector error file:%s,sector:%I64x,sector count:%I64x\n",
+							filename, idxsecoff, g_SecsPerCluster * clscnt);
 
 						break;
 					}
@@ -287,7 +279,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 		}
 
 		attr = (LPCommonAttributeHeader)((unsigned int)attr + attr->ATTR_Size);
-		if ((char*)attr - msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
+		if ((unsigned int)attr - (unsigned int)msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
 		{
 			break;
 		}
@@ -307,18 +299,18 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 	char msfinfo[MFTEntrySize];
 
 	DWORD low = secoff & 0xffffffff;
-	DWORD high = secoff >> 32;
+	DWORD high =( secoff >> 32) & 0xffff;
 	ret = readSector((DWORD)low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
 	{
-		__printf((char*)szout, "getNtfsFileData read sector:%x error\n", (DWORD)secoff);
+		__printf((char*)szout, "getNtfsFileData read sector:%I64x error\n", (DWORD)secoff);
 
 		return FALSE;
 	}
 
 	if (__memcmp(msfinfo, "FILE", 4))
 	{
-		__printf((char*)szout, "getNtfsFileData mft sector:%x format error\n", (DWORD)secoff);
+		__printf((char*)szout, "getNtfsFileData mft sector:%I64x format error\n", (DWORD)secoff);
 
 		return FALSE;
 	}
@@ -397,19 +389,19 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 					//to search directory in INDEX,the cluster offset is not relative to mft offset,but relative to hidden sector offset
 					unsigned long long datasecoff = (clsno * g_SecsPerCluster + gNtfsDbr.hideSectors);
 					DWORD low = datasecoff & 0xffffffff;
-					DWORD high = datasecoff >> 32;
+					DWORD high = (datasecoff >> 32) & 0xffff;
 
 					ret = readSector(low, high, (DWORD)(clscnt * g_SecsPerCluster), (char*)*buf);
 					if (ret <= 0)
 					{
-						__printf((char*)szout, "getNtfsFileData readSector:%x,count:%x error\n", (DWORD)datasecoff, clscnt * g_SecsPerCluster);
+						__printf((char*)szout, "getNtfsFileData readSector:%I64x,count:%I64x error\n", 
+							datasecoff, clscnt * g_SecsPerCluster);
 
 						return FALSE;
 					}
 					lpdata += clscnt * g_ClusterSize;
 
 					//__printf((char*)szout,"getNtfsFileData read file sector:%x,count:%x ok\n",(DWORD)datasecoff,clscnt*g_SecsPerCluster);
-					//__drawGraphChars((unsigned char*)szout, 0);
 				}
 
 				return hdr->ATTR_ValidSz;
@@ -431,7 +423,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 		}
 
 		attr = (LPCommonAttributeHeader)((unsigned int)attr + attr->ATTR_Size);
-		if ((char*)attr - msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
+		if ((unsigned int)attr -(unsigned int) msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
 		{
 			break;
 		}
@@ -478,7 +470,7 @@ int readNtfsFile(char* filename, char** buf) {
 			dirclsno = getNtfsDir(secoff, nextpath);
 			if (dirclsno == FALSE)
 			{
-				__printf((char*)szout, "ntfs not found file:%s in mft,previous sector:%x\n", nextpath, (DWORD)secoff);
+				__printf((char*)szout, "ntfs not found file:%s in mft sector:%I64x\n", nextpath, secoff);
 
 				break;
 			}
@@ -492,7 +484,6 @@ int readNtfsFile(char* filename, char** buf) {
 				}
 				else {
 					//__printf((char*)szout, "found file:%s at sector:%x\n", nextpath, (DWORD)secoff);
-					//__drawGraphChars((unsigned char*)szout, 0);
 				}
 			}
 		}

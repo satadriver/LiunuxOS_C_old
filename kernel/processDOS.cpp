@@ -19,12 +19,37 @@
 //int 19h 会将MBR的512字节装载到内存0x7c00中，然后JUMP到0x7c00处，开始执行MBR的可执行程序（master booter）
 
 
+DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 
+void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc) {
+	if ((env->eflags & 0x20000) && prev->level == 3 && proc->level == 3) {
+		DWORD reip = (WORD)env->eip;
+		DWORD rcs = (WORD)env->cs;
+		WORD code = *(WORD*)((rcs << 4) + reip - 2);
+		WORD code2 = *(WORD*)((rcs << 4) + reip );
+		if (code == 0xfeeb || code2 == 0xfeeb) {
 
-int getDosPeAddr(DWORD filedata,int pid) {
-	LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)V86_TASKCONTROL_ADDRESS;
-	for (int i = 0; i < LIMIT_V86_PROC_COUNT; i ++)
+			LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
+			for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
+			{
+				if (info[i].pid == prev->pid)
+				{
+					proc->status = TASK_OVER;
+					prev->status = TASK_OVER;
+					info[i].status = TASK_OVER;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+int getVm86ProcAddr(int type, DWORD filedata, int size, int pid) {
+
+	LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
+	for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
 	{
 		if (info[i].status == TASK_OVER)
 		{
@@ -32,7 +57,9 @@ int getDosPeAddr(DWORD filedata,int pid) {
 
 			info[i].pid = pid;
 
-			if (__memcmp((char*)filedata, "MZ", 2) == 0)
+			info[i].size = size;
+
+			if (type == DOS_EXE_FILE)
 			{
 				info[i].address = i * 0x1000 + DOS_LOAD_FIRST_SEG + 0x10;
 			}
@@ -45,38 +72,39 @@ int getDosPeAddr(DWORD filedata,int pid) {
 		}
 	}
 
+
 	return 0;
 }
 
 //dosfile must be align with 16b
 int relocDos(DWORD loadseg) {
-	IMAGE_DOS_HEADER * hdr = (IMAGE_DOS_HEADER*)(loadseg<<4);
+	IMAGE_DOS_HEADER* hdr = (IMAGE_DOS_HEADER*)(loadseg << 4);
 	int dosseg = hdr->e_cparhdr + loadseg;
 	hdr->e_cs = hdr->e_cs + dosseg;
 	hdr->e_ss = hdr->e_ss + dosseg;
 
 	int relocoff = hdr->e_lfarlc;
-	unsigned short * relocs = (unsigned short*)((loadseg<<4) + relocoff);
-	for (int i = 0;i < hdr->e_crlc; i ++)
+	unsigned short* relocs = (unsigned short*)((loadseg << 4) + relocoff);
+	for (int i = 0; i < hdr->e_crlc; i++)
 	{
 		unsigned short relocseg = *(relocs + 1);
 		unsigned short relocoff = *relocs;
 
-		unsigned short * relocaddr = (unsigned short *) (((relocseg + dosseg) << 4) + relocoff);
+		unsigned short* relocaddr = (unsigned short*)(((relocseg + dosseg) << 4) + relocoff);
 
 		*relocaddr = (*relocaddr + dosseg);
 
-		relocs +=2;
+		relocs += 2;
 	}
 
 	return hdr->e_crlc;
 }
 
 
-DWORD __initDosExe(DWORD filedata, int filesize,int pid) {
+DWORD __allocVm86Addr(int type, DWORD filedata, int filesize, int pid) {
 	int ret = 0;
 
-	DWORD seg = getDosPeAddr( filedata,pid);
+	DWORD seg = getVm86ProcAddr(type, filedata, filesize, pid);
 	if (seg >= INT13_RM_FILEBUF_SEG || seg <= 0)
 	{
 		return FALSE;
@@ -88,17 +116,26 @@ DWORD __initDosExe(DWORD filedata, int filesize,int pid) {
 
 	__memcpy((char*)dosaddr, (char*)filedata, filesize);
 
-	if (__memcmp((char*)filedata,"MZ",2) == 0)
-	{	
+	if (type == DOS_EXE_FILE)
+	{
 		ret = relocDos(seg);
 	}
 	else {
+
 	}
-	
+
 	return dosaddr;
 }
 
 
+
+int __createDosCodeProc(DWORD addr, int size, char* filename) {
+	if (__findProcessFileName(filename))
+	{
+		return 0;
+	}
+	return __kCreateProcess(addr, size, filename, filename, DOS_PROCESS_RUNCODE | 3, 0);
+}
 
 
 int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char * funcname, DWORD level, DWORD runparam) {
@@ -118,17 +155,22 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
 
 	//由于是单处理器，所以每个进程装入的时候必须打开中断位，否则一个进程一旦独占了唯一的一个cpu会导致无法中断
-	DWORD eflags = 0x23210;
+	DWORD eflags = 0x220202;
+	eflags = eflags | ((level&3) << 12);
 	//eflags |= 0x4000;		//nt == 1
 
 	WORD seg = (unsigned short)(addr >> 4);
 
 	WORD offset = (addr & 0x0f);
 
+	tss->sleep = 0;
+
+	tss->fpu = TRUE;
+
 	tss->tss.esp0 = TASKS_STACK0_BASE + (pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
-	tss->tss.ldt = ((DWORD)glpLdt - (DWORD)glpGdt);
+	tss->tss.ldt = 0;
 
 	tss->tss.eflags = eflags;
 
@@ -153,6 +195,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		tss->tss.fs = seg;
 		tss->tss.gs = seg;
 
+		/*
 		tss->tss.esp = tss->tss.esp - sizeof(TASKDOSPARAMS);
 		LPTASKDOSPARAMS params = (LPTASKDOSPARAMS)(tss->tss.esp + (tss->tss.ss << 4));
 		params->terminate = (DWORD)0;
@@ -161,8 +204,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		params->filename = params->szFileName;		//param2:filename
 		__strcpy(params->szFuncName, funcname);
 		params->funcname = params->szFuncName;		//param2:filename
-		params->addr = ((seg - DOS_LOAD_FIRST_SEG) / 0x1000) * sizeof(DOS_PE_CONTROL) + V86_TASKCONTROL_ADDRESS;
-		params->param = runparam;
+		*/
 
 		//__printf(szout, "__kCreateTask in file dos file:%s\r\n", filename);
 		//__drawGraphChars((unsigned char*)szout, 0);
@@ -207,7 +249,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	}
 
-#ifdef TASK_SINGLE_TSS
+#ifdef SINGLE_TASK_TSS
 	RETUTN_ADDRESS_V86* retv86 = (RETUTN_ADDRESS_V86*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_V86));
 	retv86->ret3.ret0.cs = tss->tss.cs;
 	retv86->ret3.ret0.eip = tss->tss.eip;
@@ -250,7 +292,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	__strcpy(tss->funcname, funcname);
 
-	addTaskList(tss->tid);
-
+	//addTaskList(tss->tid);
+	tss->status = TASK_RUN;
 	return TRUE;
 }

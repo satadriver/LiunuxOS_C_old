@@ -324,7 +324,11 @@ DWORD memLoadDll(char* filedata, char* addr) {
 
 void initDll() {
 
-	DATALOADERINFO* dl = (DATALOADERINFO*)gKernelData;
+	DATALOADERINFO* dl = (DATALOADERINFO*)(gKernelData<<4);
+
+	int ks = dl->_kdllSecCnt * BYTES_PER_SECTOR;
+	__memcpy((char*)KERNEL_DLL_SOURCE_BASE, (char*)VSKDLL_LOAD_ADDRESS, ks);
+
 	int ms = dl->_maindllSecCnt * BYTES_PER_SECTOR;
 	__memcpy((char*)MAIN_DLL_SOURCE_BASE, (char*)VSMAINDLL_LOAD_ADDRESS, ms);
 

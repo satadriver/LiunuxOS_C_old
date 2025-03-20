@@ -3,17 +3,21 @@
 #include "mouse.h"
 #include "video.h"
 #include "Utils.h"
-#include "screenUtils.h"
+#include "screenProtect.h"
 #include "console.h"
 #include "paint.h"
 #include "malloc.h"
 #include "cmosAlarm.h"
 #include "process.h"
 #include "atapi.h"
+#include "VM86.h"
+#include "ChinesePoem.h"
+#include"clock.h"
 
-int gMenuID = 0;
 
-int __restoreMenu(RIGHTMENU* menu) {
+
+int __restoreRightMenu(RIGHTMENU* menu) {
+
 	__kRestoreMouse();
 
 	int startpos = menu->pos.y * gBytesPerLine + menu->pos.x * gBytesPerPixel + gGraphBase;
@@ -43,7 +47,7 @@ int __restoreMenu(RIGHTMENU* menu) {
 
 	__kDrawMouse();
 
-	__free(menu->backGround);
+	//__kFree(menu->backGround);
 
 	return (int)ptr - gGraphBase;
 }
@@ -63,11 +67,10 @@ int __drawRightMenu(RIGHTMENU *menu) {
 		menu->pos.y = gVideoHeight - menu->height - TASKBAR_HEIGHT;
 	}
 
-	menu->backsize = gBytesPerPixel*(menu->width + 1)*(menu->height + 1);
-	menu->backGround = __kMalloc(menu->backsize);
+	//menu->backsize = gBytesPerPixel*(menu->width + 1)*(menu->height + 1);
+	//menu->backGround = __kMalloc(menu->backsize);
 
-	menu->id = gMenuID;
-	gMenuID++;
+	menu->id = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
 
 	int startpos = __getpos(menu->pos.x, menu->pos.y) + gGraphBase;
 	unsigned char * ptr = (unsigned char*)startpos;
@@ -110,7 +113,7 @@ int __drawRightMenu(RIGHTMENU *menu) {
 			break;
 		}
 
-		__drawGraphChar((unsigned char*)menu->menuname[i], 0, startpos - gGraphBase, 0);
+		__drawGraphChar(( char*)menu->menuname[i], 0, startpos - gGraphBase, 0);
 		startpos += GRAPHCHAR_HEIGHT*gBytesPerLine * 2;
 	}
 
@@ -177,7 +180,7 @@ extern "C" __declspec(dllexport) int __kDrawWindowsMenu() {
 }
 
 
-void initWindowsRightMenu(RIGHTMENU * menu,int tid) {
+void initRightMenu(RIGHTMENU * menu,int tid) {
 	__memset((char*)menu, 0, sizeof(RIGHTMENU));
 
 	__strcpy(menu->name, "WindowsRightClickMenu");
@@ -186,50 +189,99 @@ void initWindowsRightMenu(RIGHTMENU * menu,int tid) {
 	menu->width = RIGHTCLICK_MENU_WIDTH;
 	__strcpy(menu->menuname[0], "Shutdown System");
 	__strcpy(menu->menuname[1], "Reset System");
-	__strcpy(menu->menuname[2], "ScreenProtect");
+	__strcpy(menu->menuname[2], "Reject CDROM");
 
 	__strcpy(menu->menuname[3], "cmd");
 	__strcpy(menu->menuname[4], "Paint");
-	__strcpy(menu->menuname[5], "SreenCover");
-	__strcpy(menu->menuname[6], "Reject CDROM");
+	__strcpy(menu->menuname[5], "Clock");
+	__strcpy(menu->menuname[6], "Chinese Poem");
 
-	menu->menuname[7][0] = 0;
+	__strcpy(menu->menuname[7], "Screen Protect");
+	__strcpy(menu->menuname[8], "Trajectory Ball");
+
+	__strcpy(menu->menuname[9], "Ellipse Color");
+	
+	__strcpy(menu->menuname[10], "Vector Graph");
+	
+	__strcpy(menu->menuname[11], "Cube Graph");
+	
+	__strcpy(menu->menuname[12], "SnowScreen");
+
+	__strcpy(menu->menuname[13], "Spiral Graph");
+	
+	//menu->menuname[14][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
-	menu->funcaddr[2] = (DWORD)initScreenProtect;
+	menu->funcaddr[2] = (DWORD)rejectAtapi;
+
 	menu->funcaddr[3] = (DWORD)__kConsole;
 	menu->funcaddr[4] = (DWORD)__kPaint;
-	menu->funcaddr[5] = (DWORD)__doAlarmTask;
-	menu->funcaddr[6] = (DWORD)rejectCDROM;
-	menu->validItem = 7;
+	menu->funcaddr[5] = (DWORD)__kClock;
+	menu->funcaddr[6] = (DWORD)__kChinesePoem;
+
+	menu->funcaddr[7] = (DWORD)initScreenProtect;
+	menu->funcaddr[8] = (DWORD)initTrajectory;
+	menu->funcaddr[9] = (DWORD)EllipseScreenColor;
+	
+	menu->funcaddr[10] = (DWORD)initVectorGraph;
+	
+	menu->funcaddr[11] = (DWORD)CubeVectorGraph;
+	
+	menu->funcaddr[12] = (DWORD)SnowScreenShow;
+	menu->funcaddr[13] = (DWORD)SpiralVectorGraph;
+	
+	menu->validItem = 14;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
-	menu->paramcnt[2] = 0;
-	menu->paramcnt[3] = 6;
-	menu->paramcnt[4] = 6;
-	menu->paramcnt[5] = 1;
-	menu->paramcnt[6] = 1;
 
-	menu->funcparams[3][5] = 0;
-	menu->funcparams[3][4] = (DWORD)menu->name;
-	menu->funcparams[3][3] = (DWORD)menu->name;
-	menu->funcparams[3][2] = tid;
-	menu->funcparams[3][1] = (DWORD)__terminateProcess;
+	menu->paramcnt[2] = 1;
+	menu->paramcnt[3] = 5;
+	menu->paramcnt[4] = 5;
+	menu->paramcnt[5] = 5;
+	menu->paramcnt[6] = 5;
+
+	menu->paramcnt[7] = 0;
+	menu->paramcnt[8] = 0;
+	menu->paramcnt[9] = 0;
+	menu->paramcnt[10] = 0;
+	menu->paramcnt[11] = 0;
+	menu->paramcnt[12] = 0;
+	menu->paramcnt[13] = 0;
+
+	menu->funcparams[2][0] = 0x81;
+
+	menu->funcparams[3][4] = 0;
+	menu->funcparams[3][3] = (DWORD)"__kConsole";
+	menu->funcparams[3][2] = (DWORD)"main.dll";
+	menu->funcparams[3][1] = tid;
 	menu->funcparams[3][0] = (DWORD)__terminateProcess;
-	
-	menu->funcparams[4][5] = 0;
-	menu->funcparams[4][4] = (DWORD)menu->name;
-	menu->funcparams[4][3] = (DWORD)menu->name;
-	menu->funcparams[4][2] = tid;
-	menu->funcparams[4][1] = (DWORD)__terminateProcess;
+
+	menu->funcparams[4][4] = 0;
+	menu->funcparams[4][3] = (DWORD)"__kPaint";
+	menu->funcparams[4][2] = (DWORD)"main.dll";
+	menu->funcparams[4][1] = tid;
 	menu->funcparams[4][0] = (DWORD)__terminateProcess;
 
-	menu->funcparams[5][0] = 0;
+	menu->funcparams[6][4] = 0;
+	menu->funcparams[6][3] = (DWORD)"__kChinesePoem";
+	menu->funcparams[6][2] = (DWORD)"main.dll";
+	menu->funcparams[6][1] = tid;
+	menu->funcparams[6][0] = (DWORD)__terminateProcess;
 
-	menu->funcparams[6][0] = 0;
+	menu->funcparams[5][4] = 0;
+	menu->funcparams[5][3] = (DWORD)"__kClock";
+	menu->funcparams[5][2] = (DWORD)"main.dll";
+	menu->funcparams[5][1] = tid;
+	menu->funcparams[5][0] = (DWORD)__terminateProcess;
 
 	menu->id = 0;
+
 	menu->tid = tid;
+
+	menu->backsize = gBytesPerPixel * (menu->width + 1) * (menu->height + 1);
+	menu->backGround = __kMalloc(menu->backsize);
+
+	__kDrawWindowsMenu();
 }

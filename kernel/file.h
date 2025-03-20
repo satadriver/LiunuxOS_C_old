@@ -33,10 +33,10 @@ typedef struct
 
 typedef struct
 {
+	unsigned __int64 secno;
+	unsigned __int64 filesize;
+	unsigned __int64 attrib;
 	char pathname[256];
-	DWORD secno;
-	DWORD filesize;
-	DWORD attrib;
 }FILEBROWSER, *LPFILEBROWSER;
 
 #pragma pack()
@@ -97,10 +97,6 @@ extern "C" __declspec(dllexport) int g_ClusterSize;
 extern "C" __declspec(dllexport) int getMBR();
 
 extern "C" int logFile(char * log);
-
-extern "C" __declspec(dllexport) char * gLogDataPtr;
-
-void logInMem(char * data, int len);
 
 extern "C" __declspec(dllexport) int readFileTo(char * filename);
 

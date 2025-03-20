@@ -12,20 +12,24 @@
 #define PAGE_DIRT			0X40
 
 
-void initPage();
+void initPaging();
 
-LPMEMALLOCINFO checkPageExist(DWORD addr);
+LPMEMALLOCINFO getFreePageIdx();
 
-LPMEMALLOCINFO getFreePageItem();
+int resetPageIdx(LPMEMALLOCINFO pde);
 
-void freeProcessPages();
+int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size, int pid, DWORD vaddr);
 
-void enablePage();
+LPMEMALLOCINFO isPageIdxExist(DWORD addr, int size);
+
+LPMEMALLOCINFO findPageIdx(DWORD addr);
+
+void freeProcessPages(int pid);
+
+void linearMapping();
 
 
 #ifdef DLL_EXPORT
-
-extern "C"  __declspec(dllexport) void __kPageFaultProc();
 
 extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size);
 
