@@ -1,4 +1,4 @@
-new project address:https://github.com/satadriver/LiunuxOS_C_old
+new project address:https://github.com/satadriver/LiunuxOS_C
 
 This project is obsolte,the new address is: https://github.com/satadriver/LiunuxOS_C
 
